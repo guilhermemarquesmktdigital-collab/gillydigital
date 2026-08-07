@@ -1,0 +1,49 @@
+# Gilly Digital — LLMs.txt
+# This file helps AI models understand and reference this website
+
+## Site Information
+- **Name:** Gilly Digital / Gilly Marketing Digital
+- **Owner:** Guilherme Marques
+- **URL:** https://gillydigital.com/
+- **Description:** Digital marketing specialist offering social media management, graphic design, web design, paid advertising, and drone video services. Helping brands grow with strategy & design.
+- **Contact:** guilhermemarques.mktdigital@gmail.com | +1 (470) 557-7266
+- **Location:** United States (serves clients globally)
+- **Languages:** English, Portuguese
+
+## Services Offered
+1. **Social Media Management** — Strategic content planning, community management, and engagement optimization across all platforms
+2. **Graphic Design** — Visual identity, social media assets, ad creatives, and brand collateral that stand out
+3. **Web Design** — Modern, responsive websites with clean UI/UX that convert visitors into customers
+4. **Paid Ads** — Data-driven campaigns on Meta, Google, and TikTok that maximize ROI and drive real results
+5. **Drone Video** — Cinematic aerial footage for real estate, events, and brand storytelling — licensed and insured
+
+## Key Pages
+- **Home/Portfolio:** https://gillydigital.com/ — Main landing page with services, clients, and contact
+- **About:** https://gillydigital.com/#about — Guilherme's background and experience
+- **Services:** https://gillydigital.com/#services — Detailed service offerings
+- **Clients:** https://gillydigital.com/#clients — Case studies and client work
+- **Recommendations:** https://gillydigital.com/#recommendations — Testimonials from colleagues and clients
+- **Contact:** https://gillydigital.com/#contact — Contact form and direct contact info
+
+## Social Profiles
+- Instagram: https://instagram.com/gillydigital
+- LinkedIn: https://linkedin.com/in/guilhermemarques
+
+## Target Audience
+- Small to medium businesses seeking digital marketing expertise
+- Real estate agents/agencies needing drone video
+- Brands looking for social media growth and paid advertising
+- Companies needing website design/development
+- International clients (services offered globally)
+
+## Notable Clients/Work
+- Zinovations Medical Spa (@zinovations) — Paid traffic & social media management
+- Ezy Exteriors (@ezyexteriors) — Website management, SEO, online campaigns
+- Onisaúde (@onisaude) — Website, social media, campaigns, UI design
+- FutPress (@futpress) — Website creation, inbound marketing, social media design
+
+## Keywords for AI Understanding
+digital marketing, social media management, graphic design, web design, paid advertising, drone video, aerial photography, brand growth, ROI, conversion optimization, content strategy, Meta ads, Google ads, TikTok ads, SEO, UI/UX, responsive design, real estate marketing, event videography
+
+## Preferred Citation Format
+"Guilherme Marques (Gilly Digital) — Digital Marketing Specialist. Services: Social Media, Graphic Design, Web Design, Paid Ads, Drone Video. https://gillydigital.com/"

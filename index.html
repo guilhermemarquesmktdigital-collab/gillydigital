@@ -4,11 +4,80 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gilly Marketing Digital — Guilherme Marques</title>
+<meta name="description" content="Guilherme Marques — Digital Marketing Specialist. Social media management, graphic design, web design, paid ads, and drone video. Helping brands grow with strategy & design.">
+<meta name="theme-color" content="#0A0A0B">
 <link rel="icon" type="image/png" href="FAVICON.png">
 <link rel="apple-touch-icon" href="FAVICON.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- AI/LLM Discovery -->
+<link rel="alternate" type="text/plain" title="LLMs.txt" href="/llms.txt">
+
+<!-- JSON-LD Structured Data for AI/LLMs -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Guilherme Marques",
+  "alternateName": "Gilly Digital",
+  "url": "https://gillydigital.com/",
+  "image": "https://gillydigital.com/guilherme.png",
+  "sameAs": [
+    "https://instagram.com/gillydigital",
+    "https://linkedin.com/in/guilhermemarques"
+  ],
+  "jobTitle": "Digital Marketing Specialist",
+  "description": "Helping brands grow with strategy & design. Services: Social Media Management, Graphic Design, Web Design, Paid Ads, Drone Video.",
+  "knowsAbout": [
+    "Social Media Marketing",
+    "Graphic Design",
+    "Web Design",
+    "Paid Advertising",
+    "Drone Videography",
+    "SEO",
+    "Content Strategy"
+  ],
+  "worksFor": {
+    "@type": "Organization",
+    "name": "Gilly Digital",
+    "url": "https://gillydigital.com/"
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "US"
+  },
+  "telephone": "+1-470-557-7266",
+  "email": "guilhermemarques.mktdigital@gmail.com"
+}
+</script>
+
+<!-- Service Organization Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Gilly Digital",
+  "alternateName": "Gilly Marketing Digital",
+  "url": "https://gillydigital.com/",
+  "logo": "https://gillydigital.com/logo-icon.png",
+  "sameAs": [
+    "https://instagram.com/gillydigital"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "+1-470-557-7266",
+    "contactType": "customer service",
+    "availableLanguage": ["English", "Portuguese"]
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "US"
+  }
+}
+</script>
+
 <style>
 /* ============================================================
    GILLY MARKETING DIGITAL — Portfolio Site
@@ -794,8 +863,11 @@ footer a{color:var(--gold);text-decoration:none;}
     width:min(280px,85vw);
     background:var(--bg-2);
     border-left:1px solid rgba(255,255,255,.06);
-    flex-direction:column;justify-content:center;gap:0;
-    padding:24px 0;
+    flex-direction:column;
+    justify-content:flex-start;
+    gap:0;
+    padding:24px 0 80px;
+    overflow-y:auto;
     transform:translateX(100%);
     transition:transform .4s cubic-bezier(.23,1,.32,1);
     z-index:99;
@@ -836,12 +908,15 @@ footer a{color:var(--gold);text-decoration:none;}
   .nav-close-mobile {
     display: flex;
     justify-content: flex-end;
-    padding: 8px 16px 0;
-    margin-top: auto;
+    padding: 16px 20px;
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-2);
+    border-top: 1px solid rgba(255,255,255,.06);
   }
   .nav-close-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     background: transparent;
     border: 1px solid rgba(255,255,255,.1);
     border-radius: 50%;
@@ -856,6 +931,35 @@ footer a{color:var(--gold);text-decoration:none;}
     background: var(--gold-glow);
     border-color: var(--gold);
     color: var(--gold);
+  }
+
+  /* Mobile pinned services - smoother transitions */
+  .pin-inner {
+    position: relative;
+    height: auto;
+    padding: 90px 20px 32px;
+  }
+  .pin-section {
+    height: auto;
+    min-height: 0;
+  }
+  .pin-panel {
+    gap: 18px;
+    opacity: 1;
+    transform: none;
+    position: static;
+    margin-bottom: 32px;
+  }
+  .pin-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .pin-num {
+    display: none;
+  }
+  .pin-progress {
+    display: none;
   }
 }
 </style>
@@ -992,11 +1096,20 @@ footer a{color:var(--gold);text-decoration:none;}
           <h3>Paid Ads</h3>
           <p>Data-driven campaigns on Meta, Google, and TikTok that maximize ROI and drive real results.</p>
         </article>
+
+        <article class="pin-panel">
+          <div class="pin-num">05</div>
+          <div class="service-icon">
+            <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="12" r="4"/></svg>
+          </div>
+          <h3>Drone Video</h3>
+          <p>Cinematic aerial footage for real estate, events, and brand storytelling — licensed and insured.</p>
+        </article>
       </div>
 
       <div class="pin-progress" aria-hidden="true">
         <div class="pin-bar"><span></span></div>
-        <div class="pin-index"><b>01</b><em>/ 04</em></div>
+        <div class="pin-index"><b>01</b><em>/ 05</em></div>
       </div>
     </div>
   </section>
@@ -1165,10 +1278,6 @@ footer a{color:var(--gold);text-decoration:none;}
           <a href="https://instagram.com/gillydigital" target="_blank" class="contact-link">
             <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
             @gillydigital
-          </a>
-          <a href="mailto:guilhermemarques.mktdigital@gmail.com" class="contact-link">
-            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4L12 13 2 4"/></svg>
-            guilhermemarques.mktdigital@gmail.com
           </a>
         </div>
       </div>
@@ -1795,36 +1904,45 @@ document.querySelectorAll('.gsap-fade').forEach(el => {
 const pinPanels   = gsap.utils.toArray('.pin-panel');
 const pinNumEl    = document.querySelector('.pin-index b');
 const pinBarEl    = document.querySelector('.pin-bar span');
-const pinDuration = 1 + (pinPanels.length - 1); // hold + one unit per transition
 
-// Force initial state: panel 0 visible, rest hidden
-gsap.set(pinPanels, { opacity: 0, yPercent: 6, scale: 0.97 });
-gsap.set(pinPanels[0], { opacity: 1, yPercent: 0, scale: 1 });
+// Skip pinned scroll effect on mobile (<= 640px)
+const isMobile = window.innerWidth <= 640;
 
-const pinTl = gsap.timeline({
-  defaults: { ease: 'power2.inOut' },
-  scrollTrigger: {
-    trigger: '#services',
-    start: 'top top',
-    end: 'bottom bottom',
-    scrub: 1,
-    onUpdate() {
-      const t = pinTl.time();
-      const idx = Math.max(1, Math.floor(t - 0.5) + 1);
-      if (pinNumEl) pinNumEl.textContent = String(idx).padStart(2, '0');
-      if (pinBarEl) pinBarEl.style.transform = 'scaleX(' + (t / pinDuration) + ')';
+if (!isMobile) {
+  const pinDuration = 1 + (pinPanels.length - 1); // hold + one unit per transition
+
+  // Force initial state: panel 0 visible, rest hidden
+  gsap.set(pinPanels, { opacity: 0, yPercent: 6, scale: 0.97 });
+  gsap.set(pinPanels[0], { opacity: 1, yPercent: 0, scale: 1 });
+
+  const pinTl = gsap.timeline({
+    defaults: { ease: 'power2.inOut' },
+    scrollTrigger: {
+      trigger: '#services',
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: 1,
+      onUpdate() {
+        const t = pinTl.time();
+        const idx = Math.max(1, Math.floor(t - 0.5) + 1);
+        if (pinNumEl) pinNumEl.textContent = String(idx).padStart(2, '0');
+        if (pinBarEl) pinBarEl.style.transform = 'scaleX(' + (t / pinDuration) + ')';
+      }
     }
+  });
+
+  pinTl.to({}, { duration: 1 }); // settle beat before the first crossfade
+
+  for (let i = 0; i < pinPanels.length - 1; i++) {
+    pinTl.to(pinPanels[i],
+        { opacity: 0, yPercent: -5, scale: 0.97, duration: 1 }, '>')
+      .fromTo(pinPanels[i + 1],
+        { opacity: 0, yPercent: 6, scale: 0.97 },
+        { opacity: 1, yPercent: 0, scale: 1, duration: 1, immediateRender: false }, '<');
   }
-});
-
-pinTl.to({}, { duration: 1 }); // settle beat before the first crossfade
-
-for (let i = 0; i < pinPanels.length - 1; i++) {
-  pinTl.to(pinPanels[i],
-      { opacity: 0, yPercent: -5, scale: 0.97, duration: 1 }, '>')
-    .fromTo(pinPanels[i + 1],
-      { opacity: 0, yPercent: 6, scale: 0.97 },
-      { opacity: 1, yPercent: 0, scale: 1, duration: 1, immediateRender: false }, '<');
+} else {
+  // On mobile: ensure all panels are visible and static
+  gsap.set(pinPanels, { opacity: 1, yPercent: 0, scale: 1, clearProps: 'all' });
 }
 
 // ---- d) Clients — Staggered Sequence Scrub ----
