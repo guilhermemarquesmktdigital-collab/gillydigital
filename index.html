@@ -861,27 +861,28 @@ footer a{color:var(--gold);text-decoration:none;}
   .nav-toggle{display:flex;align-items:center;justify-content:center;}
   .nav-links{
     position:fixed;top:0;right:0;bottom:0;
-    width:min(280px,85vw);
+    width:100vw;
+    max-width:100vw;
     background:var(--bg-2);
     border-left:1px solid rgba(255,255,255,.06);
     flex-direction:column;
     justify-content:flex-start;
     gap:0;
-    padding:72px 0 80px;
+    padding:72px 20px 80px;
     overflow-y:auto;
     transform:translateX(100%);
     transition:transform .4s cubic-bezier(.23,1,.32,1);
-    z-index:99;
+    z-index:101;
   }
   .nav-links.open{
     transform:translateX(0);
-    z-index:101;
   }
   .nav-links li{width:100%;}
   .nav-links a{
-    display:block;padding:18px 32px;
-    font-size:15px;font-weight:500;
+    display:block;padding:18px 24px;
+    font-size:16px;font-weight:500;
     color:var(--text);
+    border-bottom:1px solid rgba(255,255,255,.04);
   }
   .nav-links a::after{display:none;}
   section{padding:80px 20px;}
@@ -1543,6 +1544,39 @@ let hoveredObject = null;
 const raycasterObjects = [ico, torus, ...serviceShapes, ring];
 
 // ============================================================
+//   DEVICE ORIENTATION (Gyroscope) — Mobile parallax for About section
+// ============================================================
+const deviceOrientation = { beta: 0, gamma: 0, alpha: 0 }; // beta = front/back tilt, gamma = left/right tilt
+let hasDeviceOrientation = false;
+
+// Make globally accessible for the depth parallax script
+window.deviceOrientation = deviceOrientation;
+window.hasDeviceOrientation = hasDeviceOrientation;
+
+function handleDeviceOrientation(event) {
+  // Only use on mobile/tablet
+  if (window.innerWidth > 768) return;
+
+  // beta: -180 to 180 (front/back tilt), gamma: -90 to 90 (left/right tilt)
+  // Clamp and normalize to -1..1 range
+  deviceOrientation.beta = THREE.MathUtils.clamp(event.beta, -30, 30) / 30;
+  deviceOrientation.gamma = THREE.MathUtils.clamp(event.gamma, -30, 30) / 30;
+  deviceOrientation.alpha = event.alpha ? event.alpha / 360 : 0;
+  hasDeviceOrientation = true;
+  window.hasDeviceOrientation = true; // Update global
+}
+
+// Request permission on iOS 13+
+if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+  // We'll request permission on first touch/click
+  document.addEventListener('touchstart', () => {
+    DeviceOrientationEvent.requestPermission().catch(() => {});
+  }, { once: true, passive: true });
+}
+
+window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
+
+// ============================================================
 //   SCROLL STATE
 // ============================================================
 let scrollY = 0;
@@ -1654,8 +1688,13 @@ function animate() {
   // Push away from mouse on hover
   const torusRepelX = smoothMouse.x > torus.position.x ? -hoverState.torus * 0.6 : hoverState.torus * 0.6;
   const torusRepelY = smoothMouse.y > torus.position.y ? -hoverState.torus * 0.4 : hoverState.torus * 0.4;
-  torus.position.x = lerp(torus.position.x, torusBaseX + torusRepelX, 0.04);
-  torus.position.y = lerp(torus.position.y, torusRepelY, 0.04);
+
+  // Device orientation parallax (mobile only, when About section is visible)
+  const orientX = hasDeviceOrientation ? deviceOrientation.gamma * 0.4 : 0; // left/right tilt
+  const orientY = hasDeviceOrientation ? -deviceOrientation.beta * 0.3 : 0; // front/back tilt
+
+  torus.position.x = lerp(torus.position.x, torusBaseX + torusRepelX + orientX, 0.04);
+  torus.position.y = lerp(torus.position.y, torusRepelY + orientY, 0.04);
 
   // Rotation speeds up + color brightens
   const torusSpeed = 1 + hoverState.torus * 2;
@@ -2095,7 +2134,8 @@ statEls.forEach(el => {
   /* ===== About — layered depth parallax =====
      guilherme.png (frente) e Background.jpeg (fundo) se movem
      em velocidades diferentes conforme o mouse → ilusão de
-     profundidade. Em touch (sem cursor) ficam estáticos. */
+     profundidade. Em touch (sem cursor) ficam estáticos.
+     No mobile: usa deviceorientation (gyroscope) para efeito parallax. */
   (function () {
     const wrapper = document.getElementById('depthWrapper');
     const bg = wrapper && wrapper.querySelector('.depth-bg');
@@ -2103,10 +2143,11 @@ statEls.forEach(el => {
     if (!wrapper || !bg || !fg) return;
 
     const fine = window.matchMedia('(pointer:fine)').matches;
-    let tx = 0, ty = 0;       // alvo (mouse)
+    let tx = 0, ty = 0;       // alvo (mouse/orientação)
     let cx = 0, cy = 0;       // atual (ease)
     let hovering = false;
     let raf = null;
+    const isMobile = window.innerWidth <= 768;
 
     function apply() {
       bg.style.transform = 'translate3d(' + cx * 0.35 + 'px,' + cy * 0.35 + 'px,0)';
@@ -2141,11 +2182,47 @@ statEls.forEach(el => {
       });
     }
 
+    // Device orientation (gyroscope) for mobile
+    if (isMobile && window.DeviceOrientationEvent) {
+      // Use global deviceOrientation from Three.js module if available, or create local listener
+      const useGlobalOrientation = window.deviceOrientation && window.hasDeviceOrientation;
+
+      function updateFromOrientation() {
+        if (useGlobalOrientation) {
+          // Use shared data from Three.js module
+          const gamma = window.deviceOrientation.gamma || 0; // left/right
+          const beta = window.deviceOrientation.beta || 0;   // front/back
+          tx = gamma * 8;   // Adjust multiplier for desired effect
+          ty = -beta * 6;
+        }
+      }
+
+      // If global orientation data exists, use it
+      if (useGlobalOrientation) {
+        function orientationTick() {
+          updateFromOrientation();
+          aim();
+          requestAnimationFrame(orientationTick);
+        }
+        orientationTick();
+      } else {
+        // Fallback: local listener
+        window.addEventListener('deviceorientation', (e) => {
+          if (!e.gamma && !e.beta) return;
+          const gamma = THREE.MathUtils.clamp(e.gamma, -30, 30) / 30; // -1 to 1
+          const beta = THREE.MathUtils.clamp(e.beta, -30, 30) / 30;
+          tx = gamma * 10;
+          ty = -beta * 8;
+          aim();
+        }, { passive: true });
+      }
+    }
+
     // Órbita lenta e contínua — a profundidade se lê mesmo sem o mouse.
     let t = 0;
     (function orbit() {
       t += 1;
-      if (fine && !hovering) {
+      if (fine && !hovering && !isMobile) {
         tx = Math.sin(t * 0.004) * 5;
         ty = Math.cos(t * 0.003) * 6;
         aim();
