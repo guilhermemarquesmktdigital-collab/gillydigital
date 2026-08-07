@@ -62,11 +62,17 @@ nav{
   padding:20px 40px;
   display:flex;align-items:center;justify-content:space-between;
   transition:background .4s, backdrop-filter .4s;
+  background: transparent;
 }
 nav.scrolled{
   background:rgba(10,10,11,.85);
   backdrop-filter:blur(20px);
   border-bottom:1px solid rgba(245,197,24,.08);
+}
+nav.menu-open {
+  background: rgba(10,10,11,.98) !important;
+  backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(245,197,24,.08) !important;
 }
 .nav-logo{
   display:flex;align-items:center;gap:10px;
@@ -850,13 +856,6 @@ footer a{color:var(--gold);text-decoration:none;}
     background: var(--gold-glow);
     border-color: var(--gold);
     color: var(--gold);
-  }
-
-  /* Nav solid background when mobile menu is open */
-  nav.menu-open {
-    background: rgba(10,10,11,.98) !important;
-    backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid rgba(245,197,24,.08) !important;
   }
 }
 </style>
