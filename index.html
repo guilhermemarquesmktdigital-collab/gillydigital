@@ -3,9 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gilly Marketing Digital — Guilherme Marques</title>
-<meta name="description" content="Guilherme Marques — Digital Marketing Specialist. Social media management, graphic design, web design, paid ads, and drone video. Helping brands grow with strategy & design.">
+<title>Digital Marketing Atlanta, GA | Social Media, Web Design &amp; Ads — Gilly Digital</title>
+<meta name="description" content="Atlanta-based digital marketing specialist. Social media management, web design, paid ads, graphic design &amp; drone video for brands across metro Atlanta and Georgia. Strategy + design that converts.">
 <meta name="theme-color" content="#0A0A0B">
+<link rel="canonical" href="https://gillydigital.com/">
+
+<!-- Local / geo targeting -->
+<meta name="geo.region" content="US-GA">
+<meta name="geo.placename" content="Atlanta">
+<meta name="geo.position" content="33.7490;-84.3880">
+<meta name="ICBM" content="33.7490, -84.3880">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Gilly Digital">
+<meta property="og:title" content="Digital Marketing Atlanta, GA | Gilly Digital">
+<meta property="og:description" content="Social media management, web design, paid ads, graphic design &amp; drone video — serving brands across metro Atlanta and Georgia. Strategy + design that converts.">
+<meta property="og:url" content="https://gillydigital.com/">
+<meta property="og:image" content="https://gillydigital.com/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Digital Marketing Atlanta, GA | Gilly Digital">
+<meta name="twitter:description" content="Social media management, web design, paid ads, graphic design &amp; drone video for brands across metro Atlanta and Georgia.">
+<meta name="twitter:image" content="https://gillydigital.com/og-image.jpg">
+
 <link rel="icon" type="image/png" href="FAVICON.png">
 <link rel="apple-touch-icon" href="FAVICON.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,6 +71,8 @@
   },
   "address": {
     "@type": "PostalAddress",
+    "addressLocality": "Atlanta",
+    "addressRegion": "GA",
     "addressCountry": "US"
   },
   "telephone": "+1-470-557-7266",
@@ -53,29 +80,150 @@
 }
 </script>
 
-<!-- Service Organization Schema -->
+<!-- Business + Services + Reviews Structured Data -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "Gilly Digital",
-  "alternateName": "Gilly Marketing Digital",
-  "url": "https://gillydigital.com/",
-  "logo": "https://gillydigital.com/logo-icon.png",
-  "sameAs": [
-    "https://instagram.com/gillydigital",
-    "https://www.linkedin.com/company/gilly-marketing-digital"
-  ],
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "telephone": "+1-470-557-7266",
-    "contactType": "customer service",
-    "availableLanguage": ["English", "Portuguese"]
-  },
-  "address": {
-    "@type": "PostalAddress",
-    "addressCountry": "US"
-  }
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://gillydigital.com/#website",
+      "url": "https://gillydigital.com/",
+      "name": "Gilly Digital",
+      "description": "Atlanta-based digital marketing specialist offering social media management, web design, paid ads, graphic design, and drone video.",
+      "inLanguage": "en"
+    },
+    {
+      "@type": "ProfessionalService",
+      "@id": "https://gillydigital.com/#business",
+      "name": "Gilly Digital",
+      "alternateName": "Gilly Marketing Digital",
+      "url": "https://gillydigital.com/",
+      "logo": "https://gillydigital.com/logo-icon.png",
+      "image": "https://gillydigital.com/og-image.jpg",
+      "telephone": "+1-470-557-7266",
+      "email": "guilhermemarques.mktdigital@gmail.com",
+      "priceRange": "$$",
+      "sameAs": [
+        "https://instagram.com/gillydigital",
+        "https://www.linkedin.com/company/gilly-marketing-digital"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Atlanta",
+        "addressRegion": "GA",
+        "addressCountry": "US"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 33.7490,
+        "longitude": -84.3880
+      },
+      "areaServed": [
+        { "@type": "City", "name": "Atlanta" },
+        { "@type": "City", "name": "Alpharetta" },
+        { "@type": "City", "name": "Roswell" },
+        { "@type": "City", "name": "Milton" },
+        { "@type": "City", "name": "Marietta" },
+        { "@type": "City", "name": "Kennesaw" },
+        { "@type": "City", "name": "Sandy Springs" },
+        { "@type": "City", "name": "Decatur" },
+        { "@type": "AdministrativeArea", "name": "Metro Atlanta" },
+        { "@type": "State", "name": "Georgia" }
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Digital Marketing Services",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@id": "https://gillydigital.com/social-media-management-atlanta.html" } },
+          { "@type": "Offer", "itemOffered": { "@id": "https://gillydigital.com/graphic-design-atlanta.html" } },
+          { "@type": "Offer", "itemOffered": { "@id": "https://gillydigital.com/web-design-atlanta.html" } },
+          { "@type": "Offer", "itemOffered": { "@id": "https://gillydigital.com/paid-ads-atlanta.html" } },
+          { "@type": "Offer", "itemOffered": { "@id": "https://gillydigital.com/drone-video-atlanta.html" } }
+        ]
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+1-470-557-7266",
+        "contactType": "customer service",
+        "availableLanguage": ["English", "Portuguese"]
+      }
+    },
+    {
+      "@type": "Service",
+      "@id": "https://gillydigital.com/social-media-management-atlanta.html",
+      "name": "Social Media Management in Atlanta",
+      "serviceType": "Social Media Management",
+      "description": "Strategic content planning, community management, and engagement optimization for brands across Atlanta and metro Georgia.",
+      "provider": { "@id": "https://gillydigital.com/#business" },
+      "areaServed": { "@type": "State", "name": "Georgia" },
+      "url": "https://gillydigital.com/social-media-management-atlanta.html"
+    },
+    {
+      "@type": "Service",
+      "@id": "https://gillydigital.com/graphic-design-atlanta.html",
+      "name": "Graphic Design in Atlanta",
+      "serviceType": "Graphic Design",
+      "description": "Visual identity, social media assets, ad creatives, and brand collateral for Atlanta and Georgia businesses.",
+      "provider": { "@id": "https://gillydigital.com/#business" },
+      "areaServed": { "@type": "State", "name": "Georgia" },
+      "url": "https://gillydigital.com/graphic-design-atlanta.html"
+    },
+    {
+      "@type": "Service",
+      "@id": "https://gillydigital.com/web-design-atlanta.html",
+      "name": "Web Design in Atlanta",
+      "serviceType": "Web Design",
+      "description": "Modern, responsive, SEO-friendly websites with clean UI/UX that convert visitors for Atlanta businesses.",
+      "provider": { "@id": "https://gillydigital.com/#business" },
+      "areaServed": { "@type": "State", "name": "Georgia" },
+      "url": "https://gillydigital.com/web-design-atlanta.html"
+    },
+    {
+      "@type": "Service",
+      "@id": "https://gillydigital.com/paid-ads-atlanta.html",
+      "name": "Paid Advertising in Atlanta",
+      "serviceType": "Paid Advertising",
+      "description": "Data-driven campaigns on Meta, Google, and TikTok that maximize ROI for Atlanta and Georgia businesses.",
+      "provider": { "@id": "https://gillydigital.com/#business" },
+      "areaServed": { "@type": "State", "name": "Georgia" },
+      "url": "https://gillydigital.com/paid-ads-atlanta.html"
+    },
+    {
+      "@type": "Service",
+      "@id": "https://gillydigital.com/drone-video-atlanta.html",
+      "name": "Drone Video in Atlanta",
+      "serviceType": "Drone Videography",
+      "description": "Cinematic aerial footage for real estate, events, and brand storytelling across Atlanta and metro Georgia.",
+      "provider": { "@id": "https://gillydigital.com/#business" },
+      "areaServed": { "@type": "State", "name": "Georgia" },
+      "url": "https://gillydigital.com/drone-video-atlanta.html"
+    },
+    {
+      "@type": "Review",
+      "itemReviewed": { "@id": "https://gillydigital.com/#business" },
+      "reviewBody": "Excellent professional. Very competent in the projects he was assigned to!",
+      "author": { "@type": "Person", "name": "Renato Bonfiglioli Muoio" }
+    },
+    {
+      "@type": "Review",
+      "itemReviewed": { "@id": "https://gillydigital.com/#business" },
+      "reviewBody": "I had the pleasure of working with Guilherme and witnessed firsthand his professionalism, dedication, and ability to deliver outstanding results.",
+      "author": { "@type": "Person", "name": "Marco Aurelio Machado" }
+    },
+    {
+      "@type": "Review",
+      "itemReviewed": { "@id": "https://gillydigital.com/#business" },
+      "reviewBody": "I highly recommend Guilherme for his strong digital marketing expertise and hands-on execution. He is always eager to learn, quickly adapts, and consistently delivers results.",
+      "author": { "@type": "Person", "name": "Sri Karthik Gudlavalleti" }
+    },
+    {
+      "@type": "Review",
+      "itemReviewed": { "@id": "https://gillydigital.com/#business" },
+      "reviewBody": "What stood out from day one was his initiative and willingness to go beyond what was expected. He consistently looked for ways to contribute and took ownership of his responsibilities.",
+      "author": { "@type": "Person", "name": "Ruth Arista Castillo" }
+    }
+  ]
 }
 </script>
 
@@ -490,6 +638,19 @@ section{
   max-width:640px;
   margin:0;
 }
+.pin-link{
+  display:inline-flex;align-items:center;gap:8px;
+  margin-top:10px;
+  color:var(--gold);
+  font-size:clamp(13px,1.3vw,15px);
+  font-weight:500;
+  text-decoration:none;
+  letter-spacing:.02em;
+  border-bottom:1px solid rgba(245,197,24,.35);
+  padding-bottom:2px;
+  transition:border-color .3s, color .3s;
+}
+.pin-link:hover{border-color:var(--gold);color:#FFE44D;}
 .pin-progress{
   width:min(420px,100%);
   display:flex;flex-direction:column;gap:12px;
@@ -667,6 +828,11 @@ section{
 .contact-links{
   display:flex;flex-direction:column;gap:12px;
 }
+.contact-area{
+  font-size:13px;color:var(--text-dim);font-weight:300;line-height:1.8;
+  margin:-12px 0 28px;max-width:520px;
+}
+.contact-area span{color:var(--gold);font-weight:500;letter-spacing:.04em;}
 
 /* ---- Form ---- */
 .contact-form{
@@ -761,6 +927,10 @@ footer{
   box-sizing: border-box;
 }
 footer a{color:var(--gold);text-decoration:none;}
+.footer-main{display:flex;flex-direction:column;gap:6px;}
+.footer-links{display:flex;gap:18px;flex-wrap:wrap;}
+.footer-links a{color:var(--text-dim);text-decoration:none;transition:color .3s;}
+.footer-links a:hover{color:var(--gold);}
 
 @media(max-width:640px){
   footer {
@@ -903,6 +1073,7 @@ footer a{color:var(--gold);text-decoration:none;}
   .pin-panel h3{font-size:clamp(24px,7vw,32px);}
   .pin-panel p{font-size:15px;}
   footer{flex-direction:column;gap:12px;text-align:center;padding:30px 20px;}
+  .footer-links{justify-content:center;}
 
   /* Contact section fix for mobile */
   .contact-grid{grid-template-columns:1fr;gap:32px;}
@@ -1061,8 +1232,8 @@ footer a{color:var(--gold);text-decoration:none;}
 
 <!-- Navigation -->
 <nav id="nav">
-  <a href="#" class="nav-logo">
-    <img src="logo-icon.png" alt="Gilly Digital logo">
+  <a href="/" class="nav-logo" aria-label="Gilly Digital — home">
+    <img src="logo-icon.png" alt="Gilly Digital logo" width="34" height="33">
     <span class="nav-brand">Gilly Digital</span>
   </a>
   <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="navLinks">
@@ -1096,9 +1267,9 @@ footer a{color:var(--gold);text-decoration:none;}
 
   <!-- ======== HERO ======== -->
   <section class="hero" id="hero">
-    <div class="hero-tag">Digital Marketing Specialist</div>
-    <h1>I help brands <span class="gold">grow</span> with strategy &amp; design</h1>
-    <p class="hero-sub">From social media management to paid traffic and web design — I build digital presences that convert.</p>
+    <div class="hero-tag">Digital Marketing Specialist · Atlanta, GA</div>
+    <h1>I help Atlanta brands <span class="gold">grow</span> with strategy &amp; design</h1>
+    <p class="hero-sub">From social media management to paid traffic and web design — I build digital presences that convert for businesses across metro Atlanta and Georgia.</p>
     <div class="hero-cta">
       <a href="#contact" class="btn btn-primary">Let's talk</a>
       <a href="#clients" class="btn btn-outline">View work</a>
@@ -1110,15 +1281,15 @@ footer a{color:var(--gold);text-decoration:none;}
     <div class="about-grid">
       <div class="about-image">
         <div class="img-wrapper" id="depthWrapper" aria-label="Guilherme Marques">
-          <img src="Background.jpeg" class="depth-bg" alt="" aria-hidden="true">
-          <img src="guilherme.png" class="depth-fg" alt="Guilherme Marques" draggable="false">
+          <img src="Background.jpeg" class="depth-bg" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async">
+          <img src="guilherme.png" class="depth-fg" alt="Guilherme Marques — digital marketing specialist in Atlanta, GA" draggable="false" width="1024" height="1024" loading="lazy" decoding="async">
         </div>
         <div class="accent-line"></div>
       </div>
       <div class="about-text">
         <div class="section-label">About me</div>
         <h2>Hey! I'm Guilherme Marques</h2>
-        <p>I'm an experienced digital marketing professional with strong knowledge of technology. My goal is to help businesses increase their online presence and engagement with their target audience.</p>
+        <p>I'm a digital marketing specialist based in Atlanta, GA, serving businesses across metro Atlanta and all of Georgia. With a strong background in technology, my goal is to help local companies increase their online presence and engagement with their target audience.</p>
         <p>I look forward to helping your company achieve its marketing goals — with strategy, creativity, and results.</p>
         <div class="stats">
           <div>
@@ -1154,7 +1325,8 @@ footer a{color:var(--gold);text-decoration:none;}
             <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
           </div>
           <h3>Social Media Management</h3>
-          <p>Strategic content planning, community management, and engagement optimization across all platforms.</p>
+          <p>Strategic content planning, community management, and engagement optimization for Atlanta businesses across all platforms.</p>
+          <a href="social-media-management-atlanta.html" class="pin-link">Learn more about social media in Atlanta <span aria-hidden="true">→</span></a>
         </article>
 
         <article class="pin-panel">
@@ -1163,7 +1335,8 @@ footer a{color:var(--gold);text-decoration:none;}
             <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
           </div>
           <h3>Graphic Design</h3>
-          <p>Visual identity, social media assets, ad creatives, and brand collateral that stand out.</p>
+          <p>Visual identity, social media assets, ad creatives, and brand collateral that make Atlanta brands stand out.</p>
+          <a href="graphic-design-atlanta.html" class="pin-link">Learn more about graphic design in Atlanta <span aria-hidden="true">→</span></a>
         </article>
 
         <article class="pin-panel">
@@ -1172,7 +1345,8 @@ footer a{color:var(--gold);text-decoration:none;}
             <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
           </div>
           <h3>Web Design</h3>
-          <p>Modern, responsive websites with clean UI/UX that convert visitors into customers.</p>
+          <p>Modern, responsive, SEO-friendly websites with clean UI/UX that convert visitors into customers for Atlanta businesses.</p>
+          <a href="web-design-atlanta.html" class="pin-link">Learn more about web design in Atlanta <span aria-hidden="true">→</span></a>
         </article>
 
         <article class="pin-panel">
@@ -1181,7 +1355,8 @@ footer a{color:var(--gold);text-decoration:none;}
             <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
           </div>
           <h3>Paid Ads</h3>
-          <p>Data-driven campaigns on Meta, Google, and TikTok that maximize ROI and drive real results.</p>
+          <p>Data-driven campaigns on Meta, Google, and TikTok that maximize ROI and drive real results for Atlanta businesses.</p>
+          <a href="paid-ads-atlanta.html" class="pin-link">Learn more about paid ads in Atlanta <span aria-hidden="true">→</span></a>
         </article>
 
         <article class="pin-panel">
@@ -1190,7 +1365,8 @@ footer a{color:var(--gold);text-decoration:none;}
             <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="12" r="4"/></svg>
           </div>
           <h3>Drone Video</h3>
-          <p>Cinematic aerial footage for real estate, events, and brand storytelling — sub-249g, no license required in the US.</p>
+          <p>Cinematic aerial footage for real estate, events, and brand storytelling across Atlanta — sub-249g, no license required in the US.</p>
+          <a href="drone-video-atlanta.html" class="pin-link">Learn more about drone video in Atlanta <span aria-hidden="true">→</span></a>
         </article>
       </div>
 
@@ -1205,7 +1381,7 @@ footer a{color:var(--gold);text-decoration:none;}
   <section class="clients" id="clients">
     <div style="max-width:1200px;margin:0 auto;width:100%;">
       <div class="section-label gsap-fade">Clients</div>
-      <h2 class="gsap-fade" style="font-family:var(--font-display);font-size:clamp(32px,4vw,48px);font-weight:700;letter-spacing:-.02em;">Brands I've worked with</h2>
+      <h2 class="gsap-fade" style="font-family:var(--font-display);font-size:clamp(32px,4vw,48px);font-weight:700;letter-spacing:-.02em;">Brands I've worked with across <span style="color:var(--gold);">metro Atlanta &amp; Georgia</span></h2>
       <div class="clients-grid">
         <div class="client-card">
           <div class="client-name">Zinovations Medical Spa</div>
@@ -1356,7 +1532,8 @@ footer a{color:var(--gold);text-decoration:none;}
       <div class="contact-left">
         <div class="section-label">Get in touch</div>
         <h2>Let's build something <span style="color:var(--gold);">great</span> together</h2>
-        <p>I'm excited to work together with your company. For more information and quotes, fill out the form or reach me directly.</p>
+        <p>Based in Atlanta, GA — available for work across metro Atlanta and all of Georgia. For more information and quotes, fill out the form or reach me directly.</p>
+        <p class="contact-area"><span>Areas served:</span> Atlanta · Alpharetta · Roswell · Milton · Marietta · Kennesaw · Sandy Springs · Decatur · Buckhead · Johns Creek · Cumming · all of Georgia</p>
         <div class="contact-links">
           <a href="tel:4705577266" class="contact-link">
             <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
@@ -1412,8 +1589,17 @@ footer a{color:var(--gold);text-decoration:none;}
 </div>
 
 <footer>
-  <div>&copy; 2026 Gilly Marketing Digital. All rights reserved.</div>
-  <div>Designed &amp; built by <a href="https://instagram.com/gillydigital" target="_blank">Guilherme Marques</a></div>
+  <div class="footer-main">
+    <div>&copy; 2026 Gilly Marketing Digital. All rights reserved.</div>
+    <div>Designed &amp; built by <a href="https://instagram.com/gillydigital" target="_blank">Guilherme Marques</a></div>
+  </div>
+  <nav class="footer-links" aria-label="Services">
+    <a href="social-media-management-atlanta.html">Social Media Atlanta</a>
+    <a href="graphic-design-atlanta.html">Graphic Design Atlanta</a>
+    <a href="web-design-atlanta.html">Web Design Atlanta</a>
+    <a href="paid-ads-atlanta.html">Paid Ads Atlanta</a>
+    <a href="drone-video-atlanta.html">Drone Video Atlanta</a>
+  </nav>
 </footer>
 
 <!-- ======== SCRIPTS ======== -->

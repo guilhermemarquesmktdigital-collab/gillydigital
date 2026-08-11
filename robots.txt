@@ -1,18 +1,6 @@
-# robots.txt for Gilly Digital
+# robots.txt for Gilly Digital — https://gillydigital.com
 User-agent: *
 Allow: /
 
-# Sitemap
+# Sitemap location
 Sitemap: https://gillydigital.com/sitemap.xml
-
-# Disallow admin/private paths
-Disallow: /admin/
-Disallow: /private/
-Disallow: /*.json$
-Disallow: /*.xml$
-
-# Crawl-delay for polite scraping
-Crawl-delay: 10
-
-# Host (optional, for specific crawlers)
-Host: https://gillydigital.com
