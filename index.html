@@ -2232,9 +2232,13 @@ const isMobile = window.innerWidth <= 640;
 if (!isMobile) {
   const pinDuration = 1 + (pinPanels.length - 1); // hold + one unit per transition
 
-  // Force initial state: panel 0 visible, rest hidden
-  gsap.set(pinPanels, { opacity: 0, yPercent: 6, scale: 0.97 });
-  gsap.set(pinPanels[0], { opacity: 1, yPercent: 0, scale: 1 });
+  // Force initial state: panel 0 visible, rest hidden.
+  // autoAlpha (não opacity) para que os painéis ocultos ganhem
+  // visibility:hidden — opacity:0 sozinho ainda recebe clique, e como
+  // todos os painéis dividem a mesma célula do grid, o último (Drone)
+  // ficava por cima e capturava todos os "Learn more".
+  gsap.set(pinPanels, { autoAlpha: 0, yPercent: 6, scale: 0.97 });
+  gsap.set(pinPanels[0], { autoAlpha: 1, yPercent: 0, scale: 1 });
 
   const pinTl = gsap.timeline({
     defaults: { ease: 'power2.inOut' },
@@ -2256,10 +2260,10 @@ if (!isMobile) {
 
   for (let i = 0; i < pinPanels.length - 1; i++) {
     pinTl.to(pinPanels[i],
-        { opacity: 0, yPercent: -5, scale: 0.97, duration: 1 }, '>')
+        { autoAlpha: 0, yPercent: -5, scale: 0.97, duration: 1 }, '>')
       .fromTo(pinPanels[i + 1],
-        { opacity: 0, yPercent: 6, scale: 0.97 },
-        { opacity: 1, yPercent: 0, scale: 1, duration: 1, immediateRender: false }, '<');
+        { autoAlpha: 0, yPercent: 6, scale: 0.97 },
+        { autoAlpha: 1, yPercent: 0, scale: 1, duration: 1, immediateRender: false }, '<');
   }
 } else {
   // On mobile: ensure all panels are visible and static
