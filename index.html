@@ -669,6 +669,136 @@ section{
 .pin-index b{font-family:var(--font-display);font-size:15px;color:var(--gold);font-weight:600;}
 .pin-index em{font-style:normal;opacity:.6;}
 
+/* ============================================================
+   JOURNEY — single continuous scroll-scrubbed video sequence
+   (replaces Hero + About + Services)
+   ============================================================ */
+.journey.pin-section{
+  height:700vh; /* 7 chapters × 100vh each */
+  min-height:0;
+  display:block;
+  padding:0;
+  position:relative;
+}
+.journey-anchor{
+  position:absolute;left:0;width:1px;height:1px;
+  pointer-events:none;
+}
+.journey-inner{
+  position:sticky;top:0;
+  height:100vh;
+  overflow:hidden;
+  background:var(--bg);
+}
+.journey-video{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;object-position:center 30%;
+  filter:saturate(1.03) contrast(1.02);
+}
+.journey-loading{
+  position:absolute;inset:0;z-index:3;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+  transition:opacity .5s;
+}
+.journey-loading.hidden{opacity:0;pointer-events:none;}
+.journey-loading span{
+  font-family:var(--font-display);
+  font-size:12px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold);
+}
+.journey-scrim{
+  position:absolute;inset:0;
+  background:linear-gradient(90deg, rgba(10,10,11,.46) 0%, rgba(10,10,11,.14) 36%, transparent 52%);
+  pointer-events:none;
+}
+.journey-stack{
+  position:relative;z-index:1;
+  height:100%;
+  display:grid;
+  align-items:center;
+  padding:110px clamp(24px,6vw,80px);
+}
+.journey-panel{
+  grid-area:1/1;
+  max-width:400px;
+  opacity:0;
+  will-change:transform,opacity;
+}
+.journey-panel.hero{padding-left:0;}
+.journey-panel .hero-tag,
+.journey-panel .about-text,
+.journey-panel .pin-num,
+.journey-panel .service-icon,
+.journey-panel h1,
+.journey-panel h2,
+.journey-panel h3{ text-shadow:0 2px 14px rgba(0,0,0,.65); }
+.journey-panel.hero h1{
+  font-size:clamp(30px,3.6vw,46px);
+  line-height:1.08;
+}
+.journey-panel.hero .hero-sub{
+  font-size:14px;
+  line-height:1.65;
+  margin-top:16px;
+}
+.journey-panel.hero .hero-cta{
+  margin-top:24px;
+  gap:12px;
+}
+.journey-panel.hero .btn{
+  padding:12px 22px;
+  font-size:12px;
+}
+.journey-panel .about-text h2{
+  font-size:clamp(26px,3.2vw,38px);
+  line-height:1.1;
+}
+.journey-panel .about-text p{
+  font-size:13px;
+  line-height:1.6;
+}
+.journey-panel .about-text .stats{
+  border-top-color:rgba(255,255,255,.14);
+  margin-top:20px;padding-top:16px;
+  gap:20px;
+}
+.journey-panel .about-text .stat-num{font-size:26px;}
+.journey-panel .about-text .stat-label{font-size:10px;}
+.journey-panel.pin-panel h3{
+  font-size:clamp(24px,2.8vw,34px);
+  line-height:1.1;
+}
+.journey-panel.pin-panel p{
+  font-size:13px;
+  line-height:1.6;
+}
+.journey-panel.pin-panel .service-icon{
+  width:44px;height:44px;
+  margin-bottom:4px;
+}
+.journey-panel.pin-panel .service-icon svg{width:24px;height:24px;}
+.journey-panel .pin-num{font-size:13px;}
+.journey-progress{
+  position:absolute;z-index:2;
+  right:clamp(20px,4vw,56px);top:50%;
+  transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:12px;
+}
+.journey-progress .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:rgba(255,255,255,.25);
+  transition:background .3s, transform .3s;
+}
+.journey-progress .dot.active{background:var(--gold);transform:scale(1.5);}
+@media(max-width:780px){
+  .journey-progress{display:none;}
+  .journey-stack{padding:90px 22px 70px;}
+  .journey-panel{max-width:100%;}
+}
+
+
 /* ---- Clients ---- */
 .clients{background:var(--bg-2);}
 .clients-grid{
@@ -1083,8 +1213,16 @@ footer a{color:var(--gold);text-decoration:none;}
   .contact-form-wrapper{width:100%;}
 
   /* Fix mobile viewport overflow */
-  html, body { max-width: 100vw; overflow-x: hidden; }
-  .content { max-width: 100vw; overflow-x: hidden; }
+  /* overflow-x:hidden only on body (matches desktop) — adding it to
+     <html> too broke position:sticky for the pinned journey section on
+     mobile, since it changes how the root scrolling element behaves. */
+  html { max-width: 100vw; }
+  body { max-width: 100vw; overflow-x: hidden; }
+  /* overflow-x:clip (not hidden) — hidden would make .content its own
+     scroll container on mobile, which breaks position:sticky for the
+     pinned journey section nested inside it. clip prevents the same
+     horizontal overflow without that side effect. */
+  .content { max-width: 100vw; overflow-x: clip; }
   #nav { max-width: 100vw; box-sizing: border-box; }
   section { max-width: 100vw; box-sizing: border-box; }
 
@@ -1266,60 +1404,62 @@ footer a{color:var(--gold);text-decoration:none;}
 <div class="content">
 
   <!-- ======== HERO ======== -->
-  <section class="hero" id="hero">
-    <div class="hero-tag">Digital Marketing Specialist · Atlanta, GA</div>
-    <h1>I help Atlanta brands <span class="gold">grow</span> with strategy &amp; design</h1>
-    <p class="hero-sub">From social media management to paid traffic and web design — I build digital presences that convert for businesses across metro Atlanta and Georgia.</p>
-    <div class="hero-cta">
-      <a href="#contact" class="btn btn-primary">Let's talk</a>
-      <a href="#clients" class="btn btn-outline">View work</a>
-    </div>
-  </section>
+  <!-- ======== JOURNEY — single continuous scroll-scrubbed video sequence
+       replacing Hero + About + Services. 7 chapters crossfade over one
+       24s clip as the user scrolls; anchors #hero/#about/#services keep
+       the nav links working. ======== -->
+  <section class="journey pin-section" id="journeySection">
+    <!-- Scroll-jump anchors for the nav — positioned at each chapter's
+         actual scroll depth within the tall pinned section (not inside
+         the sticky stack, where every panel shares the same offset). -->
+    <div id="hero" class="journey-anchor" style="top:0;"></div>
+    <div id="about" class="journey-anchor" style="top:14.28%;"></div>
+    <div id="services" class="journey-anchor" style="top:28.57%;"></div>
+    <div class="journey-inner">
+      <canvas class="journey-video" id="journeyCanvas" aria-hidden="true"></canvas>
+      <div class="journey-loading" id="journeyLoading"><span id="journeyLoadingPct">Loading 0%</span></div>
+      <div class="journey-scrim" aria-hidden="true"></div>
 
-  <!-- ======== ABOUT ======== -->
-  <section class="about" id="about">
-    <div class="about-grid">
-      <div class="about-image">
-        <div class="img-wrapper" id="depthWrapper" aria-label="Guilherme Marques">
-          <img src="Background.jpeg" class="depth-bg" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async">
-          <img src="guilherme.png" class="depth-fg" alt="Guilherme Marques — digital marketing specialist in Atlanta, GA" draggable="false" width="1024" height="1024" loading="lazy" decoding="async">
-        </div>
-        <div class="accent-line"></div>
-      </div>
-      <div class="about-text">
-        <div class="section-label">About me</div>
-        <h2>Hey! I'm Guilherme Marques</h2>
-        <p>I'm a digital marketing specialist based in Atlanta, GA, serving businesses across metro Atlanta and all of Georgia. With a strong background in technology, my goal is to help local companies increase their online presence and engagement with their target audience.</p>
-        <p>I look forward to helping your company achieve its marketing goals — with strategy, creativity, and results.</p>
-        <div class="stats">
-          <div>
-            <div class="stat-num" data-target="100" data-suffix="+">100+</div>
-            <div class="stat-label">Clients served</div>
-          </div>
-          <div>
-            <div class="stat-num" data-target="4">4</div>
-            <div class="stat-label">Core services</div>
-          </div>
-          <div>
-            <div class="stat-num" data-target="100" data-suffix="%">100%</div>
-            <div class="stat-label">Commitment</div>
+      <div class="journey-stack" id="journeyStack">
+
+        <!-- Chapter 0 — Hero -->
+        <div class="journey-panel hero">
+          <div class="hero-tag">Digital Marketing Specialist · Atlanta, GA</div>
+          <h1>I help Atlanta brands <span class="gold">grow</span> with strategy &amp; design</h1>
+          <p class="hero-sub">From social media management to paid traffic and web design — I build digital presences that convert for businesses across metro Atlanta and Georgia.</p>
+          <div class="hero-cta">
+            <a href="#contact" class="btn btn-primary">Let's talk</a>
+            <a href="#clients" class="btn btn-outline">View work</a>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- ======== SERVICES ======== -->
-  <!-- ======== SERVICES · PINNED SCROLL SEQUENCE ======== -->
-  <section class="services pin-section" id="services">
-    <div class="pin-inner">
-      <div class="pin-head">
-        <div class="section-label gsap-fade">What I do</div>
-        <h2 class="gsap-fade" style="font-family:var(--font-display);font-size:clamp(32px,4vw,48px);font-weight:700;letter-spacing:-.02em;">Services built for <span style="color:var(--gold);">growth</span></h2>
-      </div>
+        <!-- Chapter 1 — About -->
+        <div class="journey-panel">
+          <div class="about-text">
+            <div class="section-label">About me</div>
+            <h2>Hey! I'm Guilherme Marques</h2>
+            <p>I'm a digital marketing specialist based in Atlanta, GA, serving businesses across metro Atlanta and all of Georgia. With a strong background in technology, my goal is to help local companies increase their online presence and engagement with their target audience.</p>
+            <p>I look forward to helping your company achieve its marketing goals — with strategy, creativity, and results.</p>
+            <div class="stats">
+              <div>
+                <div class="stat-num" data-target="100" data-suffix="+">0</div>
+                <div class="stat-label">Clients served</div>
+              </div>
+              <div>
+                <div class="stat-num" data-target="4">0</div>
+                <div class="stat-label">Core services</div>
+              </div>
+              <div>
+                <div class="stat-num" data-target="100" data-suffix="%">0</div>
+                <div class="stat-label">Commitment</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <div class="pin-stack">
-        <article class="pin-panel">
+        <!-- Chapter 2 — Social Media Management -->
+        <div class="journey-panel pin-panel">
+          <div class="section-label">What I do</div>
           <div class="pin-num">01</div>
           <div class="service-icon">
             <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
@@ -1327,52 +1467,56 @@ footer a{color:var(--gold);text-decoration:none;}
           <h3>Social Media Management</h3>
           <p>Strategic content planning, community management, and engagement optimization for Atlanta businesses across all platforms.</p>
           <a href="social-media-management-atlanta.html" class="pin-link">Learn more about social media in Atlanta <span aria-hidden="true">→</span></a>
-        </article>
+        </div>
 
-        <article class="pin-panel">
+        <!-- Chapter 3 — Drone Video -->
+        <div class="journey-panel pin-panel">
           <div class="pin-num">02</div>
-          <div class="service-icon">
-            <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          </div>
-          <h3>Graphic Design</h3>
-          <p>Visual identity, social media assets, ad creatives, and brand collateral that make Atlanta brands stand out.</p>
-          <a href="graphic-design-atlanta.html" class="pin-link">Learn more about graphic design in Atlanta <span aria-hidden="true">→</span></a>
-        </article>
-
-        <article class="pin-panel">
-          <div class="pin-num">03</div>
-          <div class="service-icon">
-            <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
-          </div>
-          <h3>Web Design</h3>
-          <p>Modern, responsive, SEO-friendly websites with clean UI/UX that convert visitors into customers for Atlanta businesses.</p>
-          <a href="web-design-atlanta.html" class="pin-link">Learn more about web design in Atlanta <span aria-hidden="true">→</span></a>
-        </article>
-
-        <article class="pin-panel">
-          <div class="pin-num">04</div>
-          <div class="service-icon">
-            <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          </div>
-          <h3>Paid Ads</h3>
-          <p>Data-driven campaigns on Meta, Google, and TikTok that maximize ROI and drive real results for Atlanta businesses.</p>
-          <a href="paid-ads-atlanta.html" class="pin-link">Learn more about paid ads in Atlanta <span aria-hidden="true">→</span></a>
-        </article>
-
-        <article class="pin-panel">
-          <div class="pin-num">05</div>
           <div class="service-icon">
             <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="12" r="4"/></svg>
           </div>
           <h3>Drone Video</h3>
           <p>Cinematic aerial footage for real estate, events, and brand storytelling across Atlanta — sub-249g, no license required in the US.</p>
           <a href="drone-video-atlanta.html" class="pin-link">Learn more about drone video in Atlanta <span aria-hidden="true">→</span></a>
-        </article>
+        </div>
+
+        <!-- Chapter 4 — Graphic Design -->
+        <div class="journey-panel pin-panel">
+          <div class="pin-num">03</div>
+          <div class="service-icon">
+            <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <h3>Graphic Design</h3>
+          <p>Visual identity, social media assets, ad creatives, and brand collateral that make Atlanta brands stand out.</p>
+          <a href="graphic-design-atlanta.html" class="pin-link">Learn more about graphic design in Atlanta <span aria-hidden="true">→</span></a>
+        </div>
+
+        <!-- Chapter 5 — Web Design -->
+        <div class="journey-panel pin-panel">
+          <div class="pin-num">04</div>
+          <div class="service-icon">
+            <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+          </div>
+          <h3>Web Design</h3>
+          <p>Modern, responsive, SEO-friendly websites with clean UI/UX that convert visitors into customers for Atlanta businesses.</p>
+          <a href="web-design-atlanta.html" class="pin-link">Learn more about web design in Atlanta <span aria-hidden="true">→</span></a>
+        </div>
+
+        <!-- Chapter 6 — Paid Ads -->
+        <div class="journey-panel pin-panel">
+          <div class="pin-num">05</div>
+          <div class="service-icon">
+            <svg width="34" height="34" fill="none" stroke="var(--gold)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <h3>Paid Ads</h3>
+          <p>Data-driven campaigns on Meta, Google, and TikTok that maximize ROI and drive real results for Atlanta businesses.</p>
+          <a href="paid-ads-atlanta.html" class="pin-link">Learn more about paid ads in Atlanta <span aria-hidden="true">→</span></a>
+        </div>
+
       </div>
 
-      <div class="pin-progress" aria-hidden="true">
-        <div class="pin-bar"><span></span></div>
-        <div class="pin-index"><b>01</b><em>/ 05</em></div>
+      <div class="journey-progress" id="journeyProgress" aria-hidden="true">
+        <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
       </div>
     </div>
   </section>
@@ -1663,71 +1807,12 @@ const GOLD_DIM = new THREE.Color('#D4A812');
 const WHITE = new THREE.Color('#F4F4F4');
 const DARK = new THREE.Color('#0A0A0B');
 
-// ============================================================
-//   OBJECT 1 — Hero: Wireframe Icosahedron (large, slow rotation)
-// ============================================================
-const icoGeo = new THREE.IcosahedronGeometry(1.6, 1);
-const icoMat = new THREE.MeshStandardMaterial({
-  color: GOLD,
-  wireframe: true,
-  transparent: true,
-  opacity: 0.25,
-});
-const ico = new THREE.Mesh(icoGeo, icoMat);
-ico.position.set(2.2, 0, -1);
-scene.add(ico);
-
-// Solid inner core
-const coreGeo = new THREE.IcosahedronGeometry(0.6, 2);
-const coreMat = new THREE.MeshStandardMaterial({
-  color: GOLD,
-  transparent: true,
-  opacity: 0.08,
-  flatShading: true,
-});
-const core = new THREE.Mesh(coreGeo, coreMat);
-core.position.copy(ico.position);
-scene.add(core);
-
-// ============================================================
-//   OBJECT 2 — About: Torus Knot (morphs in from right)
-// ============================================================
-const torusGeo = new THREE.TorusKnotGeometry(1, 0.3, 128, 32);
-const torusMat = new THREE.MeshStandardMaterial({
-  color: GOLD_DIM,
-  wireframe: true,
-  transparent: true,
-  opacity: 0,
-});
-const torus = new THREE.Mesh(torusGeo, torusMat);
-torus.position.set(-3, 0, -2);
-scene.add(torus);
-
-// ============================================================
-//   OBJECT 3 — Services: 4 floating octahedra
-// ============================================================
-const serviceShapes = [];
-const servicePositions = [
-  new THREE.Vector2(-1.8, 0.8),
-  new THREE.Vector2(1.8, 0.8),
-  new THREE.Vector2(-1.8, -0.8),
-  new THREE.Vector2(1.8, -0.8),
-];
-for (let i = 0; i < 4; i++) {
-  const geo = new THREE.OctahedronGeometry(0.4, 0);
-  const mat = new THREE.MeshStandardMaterial({
-    color: GOLD,
-    wireframe: true,
-    transparent: true,
-    opacity: 0,
-    flatShading: true,
-  });
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.set(servicePositions[i].x * 2, servicePositions[i].y * 1.5, -2);
-  mesh.userData = { basePos: mesh.position.clone(), index: i };
-  scene.add(mesh);
-  serviceShapes.push(mesh);
-}
+// NOTE: Objects 1 (Hero icosahedron), 2 (About torus knot), and 3
+// (Services octahedra) have been removed — Hero/About/Services are now
+// a single video-driven "journey" section (see the journey script
+// block further down) and no longer need their own decorative 3D
+// objects or scroll-fade logic. Clients (Object 4) and Contact
+// (Object 5) below are unchanged.
 
 // ============================================================
 //   OBJECT 4 — Clients: Particle field (dots grid)
@@ -1809,7 +1894,7 @@ window.addEventListener('mouseleave', () => {
 
 // Hover state for cursor
 let hoveredObject = null;
-const raycasterObjects = [ico, torus, ...serviceShapes, ring];
+const raycasterObjects = [ring];
 
 // ============================================================
 //   DEVICE ORIENTATION (Gyroscope) — Mobile parallax for About section
@@ -1885,8 +1970,7 @@ const clock = new THREE.Clock();
 
 // Per-object hover state
 const hoverState = {
-  ico: 0, torus: 0, ring: 0,
-  services: [0, 0, 0, 0],
+  ring: 0,
 };
 
 function animate() {
@@ -1901,9 +1985,6 @@ function animate() {
   smoothMouse.y = lerp(smoothMouse.y, mouse.y, 0.06);
 
   const totalScroll = getScrollProgress();
-  const s0 = getSectionProgress(0); // hero
-  const s1 = getSectionProgress(1); // about
-  const s2 = getSectionProgress(2); // services
   const s3 = getSectionProgress(3); // clients
   const s4 = getSectionProgress(4); // contact
 
@@ -1911,103 +1992,6 @@ function animate() {
   camera.position.y = lerp(camera.position.y, -totalScroll * 2, 0.05);
   camera.position.x = lerp(camera.position.x, Math.sin(totalScroll * Math.PI) * 0.5 + smoothMouse.x * 0.3, 0.04);
   camera.lookAt(0, camera.position.y, 0);
-
-  // ================================================================
-  //  HERO: Icosahedron — mouse attraction + pulse
-  // ================================================================
-  const icoDist = Math.hypot(smoothMouse.x - ico.position.x, smoothMouse.y - ico.position.y);
-  const icoHover = Math.max(0, 1 - icoDist / 2.5); // 0..1 proximity
-  hoverState.ico = lerp(hoverState.ico, icoHover, 0.08);
-
-  // Attract toward mouse
-  const icoTargetX = lerp(2.2, smoothMouse.x * 1.2, hoverState.ico * 0.4);
-  const icoTargetY = lerp(0, smoothMouse.y * 0.8, hoverState.ico * 0.4);
-  ico.position.x = lerp(ico.position.x, icoTargetX, 0.03);
-  ico.position.y = lerp(ico.position.y, icoTargetY, 0.03);
-  core.position.copy(ico.position);
-
-  // Rotation accelerates on hover
-  const icoSpeed = 1 + hoverState.ico * 3;
-  ico.rotation.x = t * 0.15 * icoSpeed + totalScroll * 2;
-  ico.rotation.y = t * 0.1 * icoSpeed + totalScroll * 1.5;
-  ico.rotation.z = t * 0.05 * icoSpeed;
-  core.rotation.x = -t * 0.2 * icoSpeed;
-  core.rotation.y = t * 0.15 * icoSpeed;
-
-  // Opacity + scale pulse
-  icoMat.opacity = Math.max(0, (0.25 + hoverState.ico * 0.2) - totalScroll * 2);
-  const icoScale = 1 + hoverState.ico * 0.15 + Math.sin(t * 2) * hoverState.ico * 0.05;
-  ico.scale.setScalar(icoScale);
-  core.scale.setScalar(icoScale * 0.9);
-  coreMat.opacity = Math.max(0, (0.08 + hoverState.ico * 0.12) - totalScroll * 1.5);
-
-  // ================================================================
-  //  ABOUT: Torus Knot — repel from mouse + color shift
-  // ================================================================
-  const aboutFade = THREE.MathUtils.clamp((s1 - 0.1) * 3, 0, 1) * (1 - THREE.MathUtils.clamp((s1 - 0.8) * 5, 0, 1));
-  const torusDist = Math.hypot(smoothMouse.x - torus.position.x, smoothMouse.y - torus.position.y);
-  const torusHover = Math.max(0, 1 - torusDist / 2);
-  hoverState.torus = lerp(hoverState.torus, torusHover, 0.06);
-
-  torusMat.opacity = aboutFade * (0.2 + hoverState.torus * 0.15);
-
-  // Base position with scroll-driven entrance
-  const torusBaseX = 2.5 - aboutFade * 5;
-  // Push away from mouse on hover
-  const torusRepelX = smoothMouse.x > torus.position.x ? -hoverState.torus * 0.6 : hoverState.torus * 0.6;
-  const torusRepelY = smoothMouse.y > torus.position.y ? -hoverState.torus * 0.4 : hoverState.torus * 0.4;
-
-  // Device orientation parallax (mobile only, when About section is visible)
-  const orientX = hasDeviceOrientation ? deviceOrientation.gamma * 0.4 : 0; // left/right tilt
-  const orientY = hasDeviceOrientation ? -deviceOrientation.beta * 0.3 : 0; // front/back tilt
-
-  torus.position.x = lerp(torus.position.x, torusBaseX + torusRepelX + orientX, 0.04);
-  torus.position.y = lerp(torus.position.y, torusRepelY + orientY, 0.04);
-
-  // Rotation speeds up + color brightens
-  const torusSpeed = 1 + hoverState.torus * 2;
-  torus.rotation.x = t * 0.2 * torusSpeed + s1 * Math.PI;
-  torus.rotation.y = t * 0.15 * torusSpeed;
-  torusMat.color.lerpColors(GOLD_DIM, GOLD, hoverState.torus);
-
-  // ================================================================
-  //  SERVICES: 4 Octahedra — individual mouse repel/attract
-  // ================================================================
-  const servicesFade = THREE.MathUtils.clamp((s2 - 0.1) * 3, 0, 1) * (1 - THREE.MathUtils.clamp((s2 - 0.85) * 6, 0, 1));
-  serviceShapes.forEach((mesh, i) => {
-    const dist = Math.hypot(smoothMouse.x - mesh.position.x, smoothMouse.y - mesh.position.y);
-    const hover = Math.max(0, 1 - dist / 1.8);
-    hoverState.services[i] = lerp(hoverState.services[i], hover, 0.08);
-    const h = hoverState.services[i];
-
-    mesh.material.opacity = servicesFade * (0.22 + h * 0.2);
-
-    const offset = i * Math.PI * 0.5;
-    const baseY = mesh.userData.basePos.y + Math.sin(t * 0.5 + offset) * 0.3;
-    const baseX = mesh.userData.basePos.x + Math.cos(t * 0.3 + offset) * 0.2;
-
-    // Repel from mouse
-    const dx = mesh.position.x - smoothMouse.x;
-    const dy = mesh.position.y - smoothMouse.y;
-    const repelForce = h * 0.8;
-    const repelX = dx > 0 ? repelForce : -repelForce;
-    const repelY = dy > 0 ? repelForce * 0.6 : -repelForce * 0.6;
-
-    mesh.position.x = lerp(mesh.position.x, baseX + repelX, 0.05);
-    mesh.position.y = lerp(mesh.position.y, baseY + repelY, 0.05);
-
-    // Rotation + scale on hover
-    const speed = 1 + h * 4;
-    mesh.rotation.x = t * 0.3 * speed + offset;
-    mesh.rotation.y = t * 0.2 * speed + offset;
-    mesh.rotation.z = h * Math.sin(t * 3) * 0.5;
-
-    const scale = (0.5 + servicesFade * 0.5) * (1 + h * 0.35);
-    mesh.scale.setScalar(scale);
-
-    // Color brightens on hover
-    mesh.material.color.lerpColors(GOLD, new THREE.Color('#FFD84A'), h);
-  });
 
   // ================================================================
   //  CLIENTS: Particles — mouse force field (push away)
@@ -2055,14 +2039,13 @@ function animate() {
   // ================================================================
   //  CURSOR — change on hover
   // ================================================================
-  const isOverObject = hoverState.ico > 0.1 || hoverState.torus > 0.1 ||
-    hoverState.services.some(s => s > 0.15) || hoverState.ring > 0.1;
+  const isOverObject = hoverState.ring > 0.1;
   canvas.style.cursor = isOverObject ? 'grab' : 'default';
 
   // ================================================================
   //  BLOOM — intensify on hover
   // ================================================================
-  bloom.strength = lerp(bloom.strength, 0.6 + hoverState.ico * 0.8 + hoverState.torus * 0.4 + hoverState.ring * 0.5, 0.05);
+  bloom.strength = lerp(bloom.strength, 0.6 + hoverState.ring * 0.5, 0.05);
 
   // ---- Render ----
   composer.render();
@@ -2219,56 +2202,144 @@ document.querySelectorAll('.gsap-fade').forEach(el => {
   });
 });
 
-// ---- c) Services — Pinned scroll sequence ----
-// The section stays fixed in the viewport (CSS sticky) while the
-// service panels crossfade one at a time, scrubbed by scroll.
-const pinPanels   = gsap.utils.toArray('.pin-panel');
-const pinNumEl    = document.querySelector('.pin-index b');
-const pinBarEl    = document.querySelector('.pin-bar span');
+// ---- c) Journey — single continuous scroll-scrubbed frame sequence ----
+// Replaces Hero + About + Services. Instead of seeking a <video> (which
+// is unreliable on mobile Safari during momentum scroll), we preload a
+// sequence of still frames extracted from the clip and draw the right
+// one to a <canvas> as the user scrolls. No native video seeking is
+// involved at all, so this behaves identically — and just as smoothly
+// — on every device, desktop or mobile.
+const journeyPanels = gsap.utils.toArray('.journey-panel');
+const journeyCanvas = document.getElementById('journeyCanvas');
+const journeyCtx = journeyCanvas.getContext('2d');
+const journeyDots = gsap.utils.toArray('.journey-progress .dot');
+const journeyLoadingEl = document.getElementById('journeyLoading');
+const journeyLoadingPct = document.getElementById('journeyLoadingPct');
 
-// Skip pinned scroll effect on mobile (<= 640px)
-const isMobile = window.innerWidth <= 640;
+const JOURNEY_FRAME_COUNT = 144;
+const JOURNEY_FPS = 6; // frames were extracted at 6fps → 144 frames = 24s
+const journeyFrames = new Array(JOURNEY_FRAME_COUNT);
 
-if (!isMobile) {
-  const pinDuration = 1 + (pinPanels.length - 1); // hold + one unit per transition
+// The exact "resting" timestamp (seconds) for each chapter — this is
+// the frame shown for most of that chapter's scroll dwell, so e.g. the
+// page loads showing the 2s frame immediately, not the very start of
+// the clip. Scrubbing motion only happens in the last stretch of each
+// chapter's scroll range, smoothly bridging into the NEXT checkpoint.
+const journeyCheckpoints = [2, 3, 6, 11, 16, 22, 23.8];
+const journeyHoldFraction = 0.65; // first 65% of a chapter's scroll = hold still
 
-  // Force initial state: panel 0 visible, rest hidden.
-  // autoAlpha (não opacity) para que os painéis ocultos ganhem
-  // visibility:hidden — opacity:0 sozinho ainda recebe clique, e como
-  // todos os painéis dividem a mesma célula do grid, o último (Drone)
-  // ficava por cima e capturava todos os "Learn more".
-  gsap.set(pinPanels, { autoAlpha: 0, yPercent: 6, scale: 0.97 });
-  gsap.set(pinPanels[0], { autoAlpha: 1, yPercent: 0, scale: 1 });
-
-  const pinTl = gsap.timeline({
-    defaults: { ease: 'power2.inOut' },
-    scrollTrigger: {
-      trigger: '#services',
-      start: 'top top',
-      end: 'bottom bottom',
-      scrub: 1,
-      onUpdate() {
-        const t = pinTl.time();
-        const idx = Math.max(1, Math.floor(t - 0.5) + 1);
-        if (pinNumEl) pinNumEl.textContent = String(idx).padStart(2, '0');
-        if (pinBarEl) pinBarEl.style.transform = 'scaleX(' + (t / pinDuration) + ')';
-      }
-    }
-  });
-
-  pinTl.to({}, { duration: 1 }); // settle beat before the first crossfade
-
-  for (let i = 0; i < pinPanels.length - 1; i++) {
-    pinTl.to(pinPanels[i],
-        { autoAlpha: 0, yPercent: -5, scale: 0.97, duration: 1 }, '>')
-      .fromTo(pinPanels[i + 1],
-        { autoAlpha: 0, yPercent: 6, scale: 0.97 },
-        { autoAlpha: 1, yPercent: 0, scale: 1, duration: 1, immediateRender: false }, '<');
-  }
-} else {
-  // On mobile: ensure all panels are visible and static
-  gsap.set(pinPanels, { opacity: 1, yPercent: 0, scale: 1, clearProps: 'all' });
+function frameIndexForTime(sec) {
+  return Math.min(JOURNEY_FRAME_COUNT - 1, Math.max(0, Math.round(sec * JOURNEY_FPS)));
 }
+
+let journeyLastDrawnIndex = -1;
+function drawJourneyFrame(index) {
+  let img = journeyFrames[index];
+  let useIndex = index;
+
+  // If the exact target frame hasn't finished loading yet (common on
+  // slower mobile connections early on), fall back to the nearest frame
+  // that HAS loaded so the canvas still updates instead of freezing on
+  // a stale, unrelated frame until the exact one arrives.
+  if (!img || !img.complete || !img.naturalWidth) {
+    let found = null;
+    for (let d = 1; d < JOURNEY_FRAME_COUNT; d++) {
+      const before = journeyFrames[index - d];
+      const after = journeyFrames[index + d];
+      if (before && before.complete && before.naturalWidth) { found = index - d; break; }
+      if (after && after.complete && after.naturalWidth) { found = index + d; break; }
+    }
+    if (found === null) return; // nothing loaded at all yet
+    useIndex = found;
+    img = journeyFrames[found];
+  }
+
+  if (useIndex === journeyLastDrawnIndex) return; // avoid redundant redraws
+  journeyLastDrawnIndex = useIndex;
+  if (journeyCanvas.width !== img.naturalWidth) journeyCanvas.width = img.naturalWidth;
+  if (journeyCanvas.height !== img.naturalHeight) journeyCanvas.height = img.naturalHeight;
+  journeyCtx.drawImage(img, 0, 0);
+}
+
+// Preload every frame, updating a small loading readout as they arrive.
+// The first checkpoint frame is prioritized so the hero can render as
+// soon as possible, before the rest finish in the background.
+let journeyLoadedCount = 0;
+function onJourneyFrameLoaded() {
+  journeyLoadedCount++;
+  const pct = Math.round((journeyLoadedCount / JOURNEY_FRAME_COUNT) * 100);
+  if (journeyLoadingPct) journeyLoadingPct.textContent = 'Loading ' + pct + '%';
+  if (journeyLoadedCount === JOURNEY_FRAME_COUNT && journeyLoadingEl) {
+    journeyLoadingEl.classList.add('hidden');
+  }
+}
+for (let i = 0; i < JOURNEY_FRAME_COUNT; i++) {
+  const img = new Image();
+  img.onload = () => {
+    onJourneyFrameLoaded();
+    if (i === frameIndexForTime(journeyCheckpoints[0])) drawJourneyFrame(i);
+  };
+  img.onerror = onJourneyFrameLoaded; // don't let one bad frame block the loading state forever
+  img.src = 'assets/frames/f' + String(i + 1).padStart(4, '0') + '.webp';
+  journeyFrames[i] = img;
+}
+
+gsap.set(journeyPanels, { autoAlpha: 0, y: 16 });
+gsap.set(journeyPanels[0], { autoAlpha: 1, y: 0 });
+
+let journeyActiveChapter = 0;
+ScrollTrigger.create({
+  trigger: '#journeySection',
+  start: 'top top',
+  end: 'bottom bottom',
+  scrub: true,
+  onUpdate(self) {
+    const numChapters = journeyCheckpoints.length;
+    const p = self.progress;
+    const chapterFloat = p * numChapters;
+    const chapter = Math.min(numChapters - 1, Math.floor(chapterFloat));
+    const localT = Math.min(1, Math.max(0, chapterFloat - chapter));
+
+    const cur = journeyCheckpoints[chapter];
+    const next = journeyCheckpoints[Math.min(chapter + 1, numChapters - 1)];
+    let time;
+    if (chapter === numChapters - 1 || localT < journeyHoldFraction) {
+      time = cur; // resting on this chapter's checkpoint frame
+    } else {
+      const transT = (localT - journeyHoldFraction) / (1 - journeyHoldFraction);
+      time = cur + transT * (next - cur); // smooth bridge into the next checkpoint
+    }
+    drawJourneyFrame(frameIndexForTime(time));
+
+    if (chapter !== journeyActiveChapter) {
+      gsap.to(journeyPanels[journeyActiveChapter], { autoAlpha: 0, y: -16, duration: .4, ease: 'power2.out', overwrite: true });
+      gsap.to(journeyPanels[chapter], { autoAlpha: 1, y: 0, duration: .4, ease: 'power2.out', overwrite: true });
+      journeyDots.forEach((d, i) => d.classList.toggle('active', i === chapter));
+      journeyActiveChapter = chapter;
+    }
+  }
+});
+
+// Stats counter for the About chapter (count up once, first time it's revealed)
+const journeyStatEls = document.querySelectorAll('.journey-panel .stat-num');
+let journeyStatsPlayed = false;
+function playJourneyStats() {
+  if (journeyStatsPlayed) return;
+  journeyStatsPlayed = true;
+  journeyStatEls.forEach((el) => {
+    const target = parseFloat(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    const proxy = { val: 0 };
+    gsap.to(proxy, {
+      val: target, duration: 1.6, ease: 'power2.out',
+      onUpdate: () => { el.textContent = Math.round(proxy.val) + suffix; }
+    });
+  });
+}
+ScrollTrigger.create({
+  trigger: '#journeySection', start: 'top top', end: 'bottom bottom', scrub: true,
+  onUpdate(self) { if (self.progress > 1 / 7 && !journeyStatsPlayed) playJourneyStats(); }
+});
 
 // ---- d) Clients — Staggered Sequence Scrub ----
 const clientCards = document.querySelectorAll('.client-card');
