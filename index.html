@@ -789,7 +789,7 @@ section{
   .journey-panel.journey-panel-about{ max-width:400px; }
   .about-split{ flex-direction:column; gap:20px; align-items:flex-start; }
   .about-left{ max-width:100%; }
-  .about-right{ max-width:100%; }
+  .about-right{ max-width:100%; margin-left:0; }
 }
 
 .journey-panel.pin-panel h3{
@@ -1596,7 +1596,7 @@ footer a{color:var(--gold);text-decoration:none;}
             </div>
             <h3>Social Media Management</h3>
           </div>
-          <div class="split-right">
+          <div class="split-right text-scrim">
             <p>Strategic content planning, community management, and engagement optimization for Atlanta businesses across all platforms.</p>
             <a href="social-media-management-atlanta.html" class="pin-link">Learn more about social media in Atlanta <span aria-hidden="true">→</span></a>
           </div>
@@ -2114,6 +2114,24 @@ const hoverState = {
 
 function animate() {
   requestAnimationFrame(animate);
+
+  // Skip the expensive WebGL render entirely while the user is nowhere
+  // near the Clients/Contact sections that actually use it — this scene
+  // sits behind everything as a fixed full-screen canvas, so rendering
+  // it while the Journey section (or anything else) covers the screen
+  // is pure wasted GPU/CPU work that competes with scroll responsiveness.
+  const clientsEl = sectionEls[3];
+  const contactEl = sectionEls[4];
+  const viewH = window.innerHeight;
+  const nearViewport = (el) => {
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    return r.bottom > -viewH * 1.5 && r.top < viewH * 2.5;
+  };
+  if (!nearViewport(clientsEl) && !nearViewport(contactEl)) {
+    return;
+  }
+
   const t = clock.getElapsedTime();
 
   // Smooth scroll interpolation
@@ -2223,6 +2241,9 @@ const nav = document.getElementById('nav');
 window.addEventListener('scroll', () => {
   nav.classList.toggle('scrolled', window.scrollY > 60);
 }, { passive: true });
+
+// (Nav link click handling now lives in the module script below, where
+// it has direct access to the journey auto-advance state.)
 
 // ============================================================
 //   MOBILE NAV TOGGLE
@@ -2447,12 +2468,18 @@ journeyScrollTriggerInst = ScrollTrigger.create({
   onUpdate(self) {
     journeyTargetProgress = self.progress;
 
-    // ---- Auto-play trigger: based on the RAW scroll progress (not the
-    // smoothed/lerped visual value, which can sweep through earlier
-    // chapters while catching up after a big jump — using the smoothed
-    // value here would fire false triggers on fast scrolling). Once the
-    // text has fully faded out (localT crosses 0.50) hand the rest of
-    // the transition to an automatic, eased animation. ----
+    // Update the visual directly here, in the same pass ScrollTrigger
+    // uses to process the scroll — no separate ticker/lerp step in
+    // between, which was adding a frame (or more) of perceived lag
+    // between the user's scroll input and the page responding to it.
+    updateJourneyVisual(self.progress);
+
+    // ---- Auto-play trigger: based on the RAW scroll progress (not a
+    // smoothed value, which can sweep through earlier chapters while
+    // catching up after a big jump — using a smoothed value here would
+    // fire false triggers on fast scrolling). Once the text has fully
+    // faded out (localT crosses 0.50) hand the rest of the transition
+    // to an automatic, eased animation. ----
     if (journeyAutoPlaying) return;
     const numChapters = journeyCheckpoints.length;
     const chapterFloat = self.progress * numChapters;
@@ -2466,16 +2493,53 @@ journeyScrollTriggerInst = ScrollTrigger.create({
   }
 });
 
-// Block manual scroll input (wheel + touch) while an auto-transition is
-// playing, so the user's own scrolling can't fight the animation.
-function preventScroll(e) { e.preventDefault(); }
+// While an auto-transition is playing, the reader's own scroll/touch
+// input never gets ignored — instead, ANY input immediately cancels
+// the animation and hands control straight back. So someone who just
+// watches sees the full transition play out at its real pace, but
+// anyone who scrolls again right away is never blocked, even briefly.
+let journeyAutoPlayTween = null;
+function cancelJourneyAutoPlay() {
+  if (!journeyAutoPlaying) return;
+  if (journeyAutoPlayTween) journeyAutoPlayTween.kill();
+  journeyAutoPlaying = false;
+  lockJourneyScroll(false);
+}
+window.cancelJourneyAutoPlay = cancelJourneyAutoPlay;
+
+// ---- Nav link clicks — explicit, GSAP-driven scroll instead of the
+// browser's native anchor jump / scroll-behavior:smooth. Native
+// smooth-scroll can crawl or stall when the target sits past this
+// very tall pinned/sticky journey section. Reuses journeyAutoPlaying
+// as a guard for the whole trip so the auto-advance system can't
+// trigger mid-flight and fight this scroll with one of its own. ----
+document.querySelectorAll('a[href^="#"]').forEach((link) => {
+  link.addEventListener('click', (e) => {
+    const id = link.getAttribute('href').slice(1);
+    const target = document.getElementById(id);
+    if (!target) return;
+    e.preventDefault();
+    cancelJourneyAutoPlay();
+    journeyAutoPlaying = true; // suppress auto-advance triggers for the whole trip
+    const y = target.getBoundingClientRect().top + window.scrollY;
+    const proxy = { y: window.scrollY };
+    gsap.to(proxy, {
+      y: y,
+      duration: 1,
+      ease: 'power2.inOut',
+      onUpdate: () => { window.scrollTo({ top: proxy.y, left: 0, behavior: 'instant' }); },
+      onComplete: () => { journeyAutoPlaying = false; }
+    });
+    history.pushState(null, '', '#' + id);
+  });
+});
 function lockJourneyScroll(lock) {
   if (lock) {
-    window.addEventListener('wheel', preventScroll, { passive: false });
-    window.addEventListener('touchmove', preventScroll, { passive: false });
+    window.addEventListener('wheel', cancelJourneyAutoPlay, { passive: true });
+    window.addEventListener('touchstart', cancelJourneyAutoPlay, { passive: true });
   } else {
-    window.removeEventListener('wheel', preventScroll, { passive: false });
-    window.removeEventListener('touchmove', preventScroll, { passive: false });
+    window.removeEventListener('wheel', cancelJourneyAutoPlay, { passive: true });
+    window.removeEventListener('touchstart', cancelJourneyAutoPlay, { passive: true });
   }
 }
 
@@ -2492,26 +2556,44 @@ function autoAdvanceJourneyChapter(chapter) {
   lockJourneyScroll(true);
 
   const st = journeyScrollTriggerInst;
-  const targetProgress = (chapter + 1.14) / numChapters; // land past the text fade-in (0–0.08), so it's already fully visible when the auto-play stops
+  const AUTOPLAY_TRIGGER_LOCAL_T = 0.50; // matches the raw-progress trigger threshold below
+  const AUTOPLAY_LANDING_OFFSET = 1.14;  // chapter + this = where we land (past the text fade-in)
+  const targetProgress = (chapter + AUTOPLAY_LANDING_OFFSET) / numChapters;
   const targetY = st.start + targetProgress * (st.end - st.start);
   const proxy = { y: window.scrollY };
 
-  // Play at the footage's real pace: the transition takes as many
-  // seconds as the actual gap between the two checkpoints in the clip
-  // (e.g. 16s → 22s is a real 6-second gap, so the auto-advance takes
-  // ~6 seconds too) instead of a fixed, compressed duration.
+  // Play the real footage at its real pace — if there's 6 seconds of
+  // video between two checkpoints, all of it plays, over 6 real
+  // seconds. Only part of the scroll distance we're covering actually
+  // corresponds to the video scrubbing forward (that only happens
+  // between journeyHoldFraction and the chapter boundary) — the rest is
+  // the reading pause before it and the settle after landing — so the
+  // total tween duration is stretched out proportionally to compensate.
   const realGap = journeyCheckpoints[chapter + 1] - journeyCheckpoints[chapter];
+  const totalDistance = (chapter + AUTOPLAY_LANDING_OFFSET) - (chapter + AUTOPLAY_TRIGGER_LOCAL_T);
+  const scrubDistance = 1 - journeyHoldFraction;
+  const scrubFraction = scrubDistance / totalDistance;
+  const duration = realGap / scrubFraction;
 
-  gsap.to(proxy, {
+  journeyAutoPlayTween = gsap.to(proxy, {
     y: targetY,
-    duration: realGap,
-    ease: 'power1.inOut', // gentle ease at the very start/end, constant speed through the middle
-    onUpdate: () => { window.scrollTo(0, proxy.y); },
+    duration: duration,
+    ease: 'power1.inOut',
+    onUpdate: () => { window.scrollTo({ top: proxy.y, left: 0, behavior: 'instant' }); },
     onComplete: () => {
       journeyAutoPlaying = false;
       lockJourneyScroll(false);
     }
   });
+
+  // Safety net: if onComplete somehow never fires, force the lock to
+  // release anyway so scrolling can never get stuck.
+  setTimeout(() => {
+    if (journeyAutoPlaying) {
+      journeyAutoPlaying = false;
+      lockJourneyScroll(false);
+    }
+  }, (duration * 1000) + 500);
 }
 
 const journeyStatEls = document.querySelectorAll('.journey-panel .stat-num');
@@ -2579,24 +2661,10 @@ function updateJourneyVisual(p) {
   if (chapterFloat > 1 && !journeyStatsPlayed) playJourneyStats();
 }
 
-gsap.ticker.add(() => {
-  if (journeyAutoPlaying) {
-    // The auto-advance tween already eases the real scroll position —
-    // follow it directly instead of stacking another layer of lerp lag
-    // on top, which would feel mushy/delayed.
-    journeySmoothProgress = journeyTargetProgress;
-  } else {
-    // Frame-rate independent smoothing: deltaRatio() normalizes against
-    // 60fps, so the catch-up speed stays consistent whether the browser
-    // is actually ticking at 30fps, 60fps, or 120fps.
-    const ease = Math.min(1, 0.35 * gsap.ticker.deltaRatio());
-    journeySmoothProgress += (journeyTargetProgress - journeySmoothProgress) * ease;
-    if (Math.abs(journeyTargetProgress - journeySmoothProgress) < 0.0004) {
-      journeySmoothProgress = journeyTargetProgress;
-    }
-  }
-  updateJourneyVisual(journeySmoothProgress);
-});
+// Explicit initial render — ScrollTrigger's onUpdate only fires once
+// scroll actually changes, so without this the hero/canvas would stay
+// blank until the user scrolls even a pixel.
+updateJourneyVisual(0);
 
 // ---- d) Clients — Staggered Sequence Scrub ----
 const clientCards = document.querySelectorAll('.client-card');
