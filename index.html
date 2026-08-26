@@ -760,14 +760,15 @@ section{
 }
 
 /* ---- About — split into two columns: label+heading left, copy+stats right ---- */
-.journey-panel.journey-panel-about{ max-width:1100px; }
+.journey-panel.journey-panel-about{ max-width:min(1100px, 92vw); }
 .about-split{
   display:flex;
   gap:64px;
   align-items:center;
+  width:100%;
 }
 .about-left{ flex:0 0 auto; max-width:280px; }
-.about-right{ flex:1 1 auto; max-width:250px; margin-left:490px; }
+.about-right{ flex:0 1 250px; max-width:250px; margin-left:auto; }
 .journey-panel .about-text h2{
   font-size:clamp(34px,4.4vw,54px);
   line-height:1.05;
@@ -841,10 +842,11 @@ section{
 .journey-panel.chapter-social{
   align-self:start;
   margin-top:64px;
-  max-width:1000px;
+  max-width:min(1000px, 92vw);
+  width:100%;
   gap:0;
 }
-.chapter-social .split-right{ margin-left:520px; max-width:230px; }
+.chapter-social .split-right{ margin-left:auto; max-width:230px; }
 
 /* Graphic Design: title and copy are fully decoupled and absolutely
    positioned — title sits top-left in the open rack space, copy sits
@@ -2467,6 +2469,16 @@ journeyScrollTriggerInst = ScrollTrigger.create({
   scrub: true,
   onUpdate(self) {
     journeyTargetProgress = self.progress;
+
+    // Ignore sub-pixel-scale scroll noise (mobile momentum/rubber-band
+    // scrolling keeps firing tiny scroll events even after the page
+    // visually "stops"), which was causing a faint trembling as the
+    // canvas kept redrawing for changes too small to see. Real scroll
+    // input is always well above this threshold, so it never adds any
+    // perceptible delay — only true micro-jitter gets filtered out.
+    const JOURNEY_NOISE_FLOOR = 0.00006;
+    if (Math.abs(self.progress - journeySmoothProgress) < JOURNEY_NOISE_FLOOR) return;
+    journeySmoothProgress = self.progress;
 
     // Update the visual directly here, in the same pass ScrollTrigger
     // uses to process the scroll — no separate ticker/lerp step in
