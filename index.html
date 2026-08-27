@@ -824,6 +824,23 @@ section{
 }
 .chapter-center.text-scrim{ padding:16px 20px; }
 
+/* Promote the text panels to their own compositor layer so opacity /
+   transform changes during scrolling don't force full repaints of the
+   canvas behind them. */
+.journey-panel{ will-change:opacity, transform; }
+
+@media(max-width:900px){
+  /* backdrop-filter is very expensive to repaint on mobile GPUs and was
+     a major contributor to micro-stutter while scrolling. Drop the blur
+     there and compensate with a more opaque background — same
+     legibility, a fraction of the per-frame cost. */
+  .text-scrim{
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+    background:rgba(7,8,9,.82);
+  }
+}
+
 /* Social Media: title top-left, copy pushed further right — clear of
    the phone entirely, into the darker background past it. */
 .journey-panel.chapter-split{
@@ -2496,6 +2513,7 @@ let journeyAutoPlaying = false;
 let journeyScrollTriggerInst = null;
 let journeyLastLocalT = 0;
 let journeyLastChapter = 0;
+let journeyLastActiveChapter = -1;
 
 journeyScrollTriggerInst = ScrollTrigger.create({
   trigger: '#journeySection',
@@ -2508,15 +2526,11 @@ journeyScrollTriggerInst = ScrollTrigger.create({
 
     // Ignore sub-pixel-scale scroll noise (mobile momentum/rubber-band
     // scrolling keeps firing tiny scroll events even after the page
-    // visually "stops"), which was causing a faint trembling as the
-    // canvas kept redrawing for changes too small to see. Real scroll
-    // input is always well above this threshold, so it never adds any
-    // perceptible delay — only true micro-jitter gets filtered out.
-    // Now that frames cross-fade, much smaller scroll deltas produce a
-    // visible change, so this floor is lowered accordingly — it still
-    // filters out true sub-pixel jitter (mobile momentum/rubber-band),
-    // just without discarding motion the blending can now render.
-    const JOURNEY_NOISE_FLOOR = 0.00002;
+    // visually "stops"). Set so that anything below roughly a third of
+    // a source frame's worth of movement is dropped — well under what's
+    // perceptible, but enough to stop the settling jitter from driving
+    // constant redraws.
+    const JOURNEY_NOISE_FLOOR = 0.0004;
     if (Math.abs(self.progress - journeySmoothProgress) < JOURNEY_NOISE_FLOOR) return;
     journeySmoothProgress = self.progress;
 
@@ -2711,12 +2725,27 @@ function updateJourneyVisual(p) {
     else if (t >= 0.08 && t < 0.40) op = 1;
     else if (t >= 0.40 && t < 0.50) op = easeInOut(1 - (t - 0.40) / 0.10);
     else op = 0;
-    panel.style.opacity = op;
-    panel.style.visibility = op > 0.01 ? 'visible' : 'hidden';
-    panel.style.transform = 'translateY(' + ((1 - op) * 14) + 'px)';
+
+    // Only touch the DOM when the value actually changed. Writing the
+    // same opacity/transform on every scroll event forces the browser
+    // to re-evaluate these panels constantly — and because the text
+    // boxes use backdrop-filter (an expensive blur), that re-evaluation
+    // showed up as visible micro-trembling on mobile as momentum
+    // scrolling settled. Rounding first also collapses sub-perceptual
+    // differences into no-ops.
+    const opR = Math.round(op * 100) / 100;
+    if (panel._lastOp !== opR) {
+      panel._lastOp = opR;
+      panel.style.opacity = opR;
+      panel.style.visibility = opR > 0.01 ? 'visible' : 'hidden';
+      panel.style.transform = 'translate3d(0,' + ((1 - opR) * 14).toFixed(1) + 'px,0)';
+    }
   });
 
-  journeyDots.forEach((d, i) => d.classList.toggle('active', i === chapter));
+  if (journeyLastActiveChapter !== chapter) {
+    journeyLastActiveChapter = chapter;
+    journeyDots.forEach((d, i) => d.classList.toggle('active', i === chapter));
+  }
   if (chapterFloat > 1 && !journeyStatsPlayed) playJourneyStats();
 }
 
