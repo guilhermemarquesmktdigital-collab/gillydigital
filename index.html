@@ -2648,10 +2648,14 @@ function autoAdvanceJourneyChapter(chapter) {
   }, (duration * 1000) + 500);
 }
 
-const journeyStatEls = document.querySelectorAll('.journey-panel .stat-num');
 function playJourneyStats() {
   if (journeyStatsPlayed) return;
   journeyStatsPlayed = true;
+  // Queried here rather than in a module-level const: ScrollTrigger
+  // fires its onUpdate immediately on creation, which reaches this
+  // function before a const declared further down has initialized
+  // (temporal dead zone) — that threw a ReferenceError on load.
+  const journeyStatEls = document.querySelectorAll('.journey-panel .stat-num');
   journeyStatEls.forEach((el) => {
     const target = parseFloat(el.dataset.target);
     const suffix = el.dataset.suffix || '';
