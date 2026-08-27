@@ -2394,33 +2394,68 @@ function frameIndexForTime(sec) {
   return Math.min(JOURNEY_FRAME_COUNT - 1, Math.max(0, Math.round(sec * JOURNEY_FPS)));
 }
 
-let journeyLastDrawnIndex = -1;
-function drawJourneyFrame(index) {
-  let img = journeyFrames[index];
-  let useIndex = index;
+// Exact (fractional) frame position for a given time — the integer part
+// is the frame to show, the fraction is how far along we are toward the
+// next one. That fraction is what lets us blend between them.
+function framePositionForTime(sec) {
+  return Math.min(JOURNEY_FRAME_COUNT - 1, Math.max(0, sec * JOURNEY_FPS));
+}
 
-  // If the exact target frame hasn't finished loading yet (common on
-  // slower mobile connections early on), fall back to the nearest frame
-  // that HAS loaded so the canvas still updates instead of freezing on
-  // a stale, unrelated frame until the exact one arrives.
-  if (!img || !img.complete || !img.naturalWidth) {
-    let found = null;
-    for (let d = 1; d < JOURNEY_FRAME_COUNT; d++) {
-      const before = journeyFrames[index - d];
-      const after = journeyFrames[index + d];
-      if (before && before.complete && before.naturalWidth) { found = index - d; break; }
-      if (after && after.complete && after.naturalWidth) { found = index + d; break; }
-    }
-    if (found === null) return; // nothing loaded at all yet
-    useIndex = found;
-    img = journeyFrames[found];
+function isFrameReady(i) {
+  const img = journeyFrames[i];
+  return !!(img && img.complete && img.naturalWidth);
+}
+
+// Find the nearest loaded frame to `index` — used when the exact frame
+// hasn't downloaded yet (common early on / on slow connections) so the
+// canvas keeps updating instead of freezing on a stale frame.
+function nearestLoadedFrame(index) {
+  if (isFrameReady(index)) return index;
+  for (let d = 1; d < JOURNEY_FRAME_COUNT; d++) {
+    if (isFrameReady(index - d)) return index - d;
+    if (isFrameReady(index + d)) return index + d;
   }
+  return null;
+}
 
-  if (useIndex === journeyLastDrawnIndex) return; // avoid redundant redraws
-  journeyLastDrawnIndex = useIndex;
-  if (journeyCanvas.width !== img.naturalWidth) journeyCanvas.width = img.naturalWidth;
-  if (journeyCanvas.height !== img.naturalHeight) journeyCanvas.height = img.naturalHeight;
-  journeyCtx.drawImage(img, 0, 0);
+let journeyLastDrawnKey = '';
+// Draws the scene at a fractional frame position, cross-fading between
+// the two neighbouring frames instead of snapping from one to the next.
+// The source clip is only 6fps, so without this the motion visibly
+// steps; blending makes it read as continuous movement at whatever
+// refresh rate the display runs at — far smoother, no extra downloads.
+function drawJourneyAtPosition(pos) {
+  const baseIdx = Math.floor(pos);
+  const blend = pos - baseIdx;
+
+  const a = nearestLoadedFrame(baseIdx);
+  if (a === null) return; // nothing loaded yet
+  let b = baseIdx + 1 <= JOURNEY_FRAME_COUNT - 1 ? nearestLoadedFrame(baseIdx + 1) : null;
+
+  // Skip blending when it wouldn't be visible anyway (sitting on a
+  // frame, or the neighbour isn't available) — saves a second drawImage.
+  const doBlend = b !== null && b !== a && blend > 0.01 && blend < 0.99;
+
+  const key = doBlend ? a + '>' + b + ':' + blend.toFixed(2) : String(a);
+  if (key === journeyLastDrawnKey) return; // nothing changed, skip the redraw
+  journeyLastDrawnKey = key;
+
+  const imgA = journeyFrames[a];
+  if (journeyCanvas.width !== imgA.naturalWidth) journeyCanvas.width = imgA.naturalWidth;
+  if (journeyCanvas.height !== imgA.naturalHeight) journeyCanvas.height = imgA.naturalHeight;
+
+  journeyCtx.globalAlpha = 1;
+  journeyCtx.drawImage(imgA, 0, 0);
+  if (doBlend) {
+    journeyCtx.globalAlpha = blend;
+    journeyCtx.drawImage(journeyFrames[b], 0, 0);
+    journeyCtx.globalAlpha = 1;
+  }
+}
+
+// Kept for the initial paint / any callers that just want one frame.
+function drawJourneyFrame(index) {
+  drawJourneyAtPosition(index);
 }
 
 // Preload every frame, updating a small loading readout as they arrive.
@@ -2467,6 +2502,7 @@ journeyScrollTriggerInst = ScrollTrigger.create({
   start: 'top top',
   end: 'bottom bottom',
   scrub: true,
+  invalidateOnRefresh: true,
   onUpdate(self) {
     journeyTargetProgress = self.progress;
 
@@ -2476,7 +2512,11 @@ journeyScrollTriggerInst = ScrollTrigger.create({
     // canvas kept redrawing for changes too small to see. Real scroll
     // input is always well above this threshold, so it never adds any
     // perceptible delay — only true micro-jitter gets filtered out.
-    const JOURNEY_NOISE_FLOOR = 0.00006;
+    // Now that frames cross-fade, much smaller scroll deltas produce a
+    // visible change, so this floor is lowered accordingly — it still
+    // filters out true sub-pixel jitter (mobile momentum/rubber-band),
+    // just without discarding motion the blending can now render.
+    const JOURNEY_NOISE_FLOOR = 0.00002;
     if (Math.abs(self.progress - journeySmoothProgress) < JOURNEY_NOISE_FLOOR) return;
     journeySmoothProgress = self.progress;
 
@@ -2640,7 +2680,7 @@ function updateJourneyVisual(p) {
     const transT = (localT - journeyHoldFraction) / (1 - journeyHoldFraction);
     time = cur + transT * (next - cur);
   }
-  drawJourneyFrame(frameIndexForTime(time));
+  drawJourneyAtPosition(framePositionForTime(time));
 
   // ---- Text: fade in once settled, hold to read, fade out with LOTS
   // of room to breathe BEFORE the scene starts moving toward the next
@@ -2656,13 +2696,16 @@ function updateJourneyVisual(p) {
   // ramp (opacity 0) and never moves until the user scrolls. Since
   // there's no "previous chapter" to transition from, the hero should
   // just be visible immediately instead of waiting on scroll input.
+  // Eased fades instead of a straight linear ramp — text easing in and
+  // out on a curve reads as noticeably softer than a constant-rate fade.
+  const easeInOut = (x) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
   journeyPanels.forEach((panel, i) => {
     const t = chapterFloat - i;
     let op = 0;
     if (i === 0 && t >= 0 && t < 0.40) op = 1;
-    else if (t >= 0 && t < 0.08) op = t / 0.08;
+    else if (t >= 0 && t < 0.08) op = easeInOut(t / 0.08);
     else if (t >= 0.08 && t < 0.40) op = 1;
-    else if (t >= 0.40 && t < 0.50) op = 1 - (t - 0.40) / 0.10;
+    else if (t >= 0.40 && t < 0.50) op = easeInOut(1 - (t - 0.40) / 0.10);
     else op = 0;
     panel.style.opacity = op;
     panel.style.visibility = op > 0.01 ? 'visible' : 'hidden';
