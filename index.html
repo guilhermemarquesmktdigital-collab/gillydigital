@@ -674,7 +674,14 @@ section{
    (replaces Hero + About + Services)
    ============================================================ */
 .journey.pin-section{
-  height:700vh; /* 7 chapters × 100vh each */
+  /* Uses a JS-locked --journey-vh instead of raw vh units. On iOS
+     Safari, vh tracks the viewport as the URL bar collapses/expands
+     while scrolling — so a 700vh section would change height by
+     hundreds of pixels mid-scroll, shifting every scroll reference and
+     making the frame snap back and forth. Locking the value kills that
+     feedback loop. Falls back to vh where the variable isn't set. */
+  height:700vh;
+  height:calc(var(--journey-vh, 1vh) * 700);
   min-height:0;
   display:block;
   padding:0;
@@ -687,6 +694,7 @@ section{
 .journey-inner{
   position:sticky;top:0;
   height:100vh;
+  height:calc(var(--journey-vh, 1vh) * 100);
   overflow:hidden;
   background:var(--bg);
 }
@@ -2328,6 +2336,38 @@ window.addEventListener('resize', () => {
 //   GSAP SCROLL EFFECTS
 // ============================================================
 gsap.registerPlugin(ScrollTrigger);
+
+// ---- iOS Safari URL-bar stability ----
+// On iOS the URL bar collapses/expands during scrolling, which changes
+// the reported viewport height. Anything sized in vh then resizes
+// mid-scroll, ScrollTrigger recalculates against the new height, and
+// the scrubbed frame snaps backwards and forwards — the trembling seen
+// on iPhone. Two guards:
+//   1. GSAP's own flag to ignore those height-only mobile resizes.
+//   2. A --journey-vh custom property locked to the height measured at
+//      load, refreshed only when the width changes (a real rotation or
+//      window resize) rather than on every URL-bar movement.
+ScrollTrigger.config({ ignoreMobileResize: true });
+
+let journeyLockedWidth = window.innerWidth;
+function lockJourneyViewportHeight() {
+  document.documentElement.style.setProperty('--journey-vh', (window.innerHeight * 0.01) + 'px');
+}
+lockJourneyViewportHeight();
+window.addEventListener('resize', () => {
+  // Height-only changes on mobile are the URL bar — ignore them.
+  if (window.innerWidth === journeyLockedWidth) return;
+  journeyLockedWidth = window.innerWidth;
+  lockJourneyViewportHeight();
+  ScrollTrigger.refresh();
+});
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    journeyLockedWidth = window.innerWidth;
+    lockJourneyViewportHeight();
+    ScrollTrigger.refresh();
+  }, 250);
+});
 
 // ---- a) Hero Parallax Scrub ----
 // Hero content fades out and accelerates upward as you scroll past
