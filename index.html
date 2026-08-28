@@ -2453,7 +2453,10 @@ function drawJourneyAtPosition(pos) {
   // frame, or the neighbour isn't available) — saves a second drawImage.
   const doBlend = b !== null && b !== a && blend > 0.01 && blend < 0.99;
 
-  const key = doBlend ? a + '>' + b + ':' + blend.toFixed(2) : String(a);
+  // 3 decimals (not 2): with only 6fps of source material the blend
+  // alpha is doing a lot of the perceived-motion work, and rounding it
+  // to 1% steps was quantising that motion into visible increments.
+  const key = doBlend ? a + '>' + b + ':' + blend.toFixed(3) : String(a);
   if (key === journeyLastDrawnKey) return; // nothing changed, skip the redraw
   journeyLastDrawnKey = key;
 
@@ -2515,6 +2518,19 @@ let journeyLastLocalT = 0;
 let journeyLastChapter = 0;
 let journeyLastActiveChapter = -1;
 
+// Touch devices get NO auto-advance. On iOS/iPadOS, momentum scrolling
+// keeps moving the page after the finger lifts without firing wheel or
+// touchstart — so an auto-advance that starts mid-momentum can't be
+// cancelled, and ends up fighting the system's own scrolling. That
+// tug-of-war is what made scrolling feel like it "repeated itself" and
+// left the page trembling as it settled. Scroll-scrubbing alone still
+// plays every frame there; only the hands-free playback is dropped.
+// Declared here (before the ScrollTrigger below, whose callback runs
+// immediately on creation) to avoid a temporal-dead-zone ReferenceError.
+const journeyIsTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches
+  || ('ontouchstart' in window)
+  || navigator.maxTouchPoints > 0;
+
 journeyScrollTriggerInst = ScrollTrigger.create({
   trigger: '#journeySection',
   start: 'top top',
@@ -2530,7 +2546,12 @@ journeyScrollTriggerInst = ScrollTrigger.create({
     // a source frame's worth of movement is dropped — well under what's
     // perceptible, but enough to stop the settling jitter from driving
     // constant redraws.
-    const JOURNEY_NOISE_FLOOR = 0.0004;
+    // The trembling this originally guarded against turned out to be
+    // caused by redundant DOM writes (now cached per panel), not by the
+    // scroll events themselves. With that fixed, this floor can be much
+    // lower — passing finer scroll deltas through to the canvas for
+    // smoother scrubbing — while still dropping true sub-pixel noise.
+    const JOURNEY_NOISE_FLOOR = 0.00008;
     if (Math.abs(self.progress - journeySmoothProgress) < JOURNEY_NOISE_FLOOR) return;
     journeySmoothProgress = self.progress;
 
@@ -2559,11 +2580,9 @@ journeyScrollTriggerInst = ScrollTrigger.create({
   }
 });
 
-// While an auto-transition is playing, the reader's own scroll/touch
-// input never gets ignored — instead, ANY input immediately cancels
-// the animation and hands control straight back. So someone who just
-// watches sees the full transition play out at its real pace, but
-// anyone who scrolls again right away is never blocked, even briefly.
+// While an auto-transition is playing, the reader's own scroll input
+// never gets ignored — instead, ANY input immediately cancels the
+// animation and hands control straight back.
 let journeyAutoPlayTween = null;
 function cancelJourneyAutoPlay() {
   if (!journeyAutoPlaying) return;
@@ -2600,12 +2619,11 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
   });
 });
 function lockJourneyScroll(lock) {
+  const evts = ['wheel', 'touchstart', 'touchmove', 'keydown', 'mousedown'];
   if (lock) {
-    window.addEventListener('wheel', cancelJourneyAutoPlay, { passive: true });
-    window.addEventListener('touchstart', cancelJourneyAutoPlay, { passive: true });
+    evts.forEach(e => window.addEventListener(e, cancelJourneyAutoPlay, { passive: true }));
   } else {
-    window.removeEventListener('wheel', cancelJourneyAutoPlay, { passive: true });
-    window.removeEventListener('touchstart', cancelJourneyAutoPlay, { passive: true });
+    evts.forEach(e => window.removeEventListener(e, cancelJourneyAutoPlay, { passive: true }));
   }
 }
 
@@ -2615,6 +2633,7 @@ function lockJourneyScroll(lock) {
 // in sync with ScrollTrigger/the browser's own scrollbar), just eased
 // and hands-free instead of requiring the user to scroll through it.
 function autoAdvanceJourneyChapter(chapter) {
+  if (journeyIsTouch) return; // see journeyIsTouch above — no hands-free playback on touch
   if (journeyAutoPlaying || !journeyScrollTriggerInst) return;
   const numChapters = journeyCheckpoints.length;
   if (chapter >= numChapters - 1) return;
@@ -2696,7 +2715,17 @@ function updateJourneyVisual(p) {
     time = cur;
   } else {
     const transT = (localT - journeyHoldFraction) / (1 - journeyHoldFraction);
-    time = cur + transT * (next - cur);
+    // Ease the scene into and out of motion instead of jumping straight
+    // to full scrubbing speed. Previously the footage went from frozen
+    // to moving at a constant rate the instant the hold ended (and
+    // stopped just as abruptly on arrival), which read as a mechanical
+    // lurch at both ends of every transition. Easing makes each beat of
+    // the story start and settle gently — the single biggest
+    // cinematic-feel improvement available at zero cost.
+    const eased = transT < 0.5
+      ? 2 * transT * transT
+      : 1 - Math.pow(-2 * transT + 2, 2) / 2;
+    time = cur + eased * (next - cur);
   }
   drawJourneyAtPosition(framePositionForTime(time));
 
