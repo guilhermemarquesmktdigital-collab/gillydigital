@@ -2458,7 +2458,83 @@ function framePositionForTime(sec) {
   return Math.min(JOURNEY_FRAME_COUNT - 1, Math.max(0, sec * JOURNEY_FPS));
 }
 
+/* ============================================================
+   Decoded-bitmap cache
+   ------------------------------------------------------------
+   The stutter on iPhone came from memory pressure: 144 frames at
+   1600x900 is ~790MB once decoded, far past what iOS Safari will hold.
+   Safari therefore evicts decoded images and has to re-decode them
+   mid-scroll, and each re-decode is a visible hitch.
+
+   Fix: decode frames ourselves into ImageBitmaps at a size matched to
+   the device, and keep only a bounded window of them alive (closing the
+   rest explicitly). Memory stays flat and predictable, draws are
+   cheaper because the bitmap is already at display scale, and the
+   working set around the current position never needs re-decoding.
+   ============================================================ */
+const JOURNEY_BITMAP_SUPPORTED = typeof createImageBitmap === 'function';
+// Target width for decoded bitmaps. Phones get a smaller one: the frame
+// is upscaled to cover a tall viewport anyway, so the extra source
+// pixels buy almost nothing visually but cost decode time and memory.
+const JOURNEY_BITMAP_WIDTH = window.innerWidth <= 900 ? 960 : 1600;
+// Bounded cache. ~48 frames around the current position is far more
+// than scrolling ever needs at once, and caps memory at a safe level.
+const JOURNEY_BITMAP_BUDGET = 48;
+
+const journeyBitmaps = new Map();   // index -> ImageBitmap
+const journeyBitmapPending = new Set();
+
+function journeyTrimBitmaps(centerIdx) {
+  if (journeyBitmaps.size <= JOURNEY_BITMAP_BUDGET) return;
+  // Evict whatever is furthest from where we're looking.
+  const byDistance = [...journeyBitmaps.keys()]
+    .sort((x, y) => Math.abs(y - centerIdx) - Math.abs(x - centerIdx));
+  while (journeyBitmaps.size > JOURNEY_BITMAP_BUDGET) {
+    const victim = byDistance.shift();
+    const bmp = journeyBitmaps.get(victim);
+    if (bmp && bmp.close) bmp.close(); // release GPU/CPU memory now
+    journeyBitmaps.delete(victim);
+  }
+}
+
+function journeyRequestBitmap(index, centerIdx) {
+  if (!JOURNEY_BITMAP_SUPPORTED) return;
+  if (index < 0 || index >= JOURNEY_FRAME_COUNT) return;
+  if (journeyBitmaps.has(index) || journeyBitmapPending.has(index)) return;
+  const img = journeyFrames[index];
+  if (!img || !img.complete || !img.naturalWidth) return;
+  journeyBitmapPending.add(index);
+  const opts = img.naturalWidth > JOURNEY_BITMAP_WIDTH
+    ? { resizeWidth: JOURNEY_BITMAP_WIDTH, resizeQuality: 'high' }
+    : undefined;
+  createImageBitmap(img, opts).then((bmp) => {
+    journeyBitmapPending.delete(index);
+    journeyBitmaps.set(index, bmp);
+    journeyTrimBitmaps(centerIdx);
+  }).catch(() => { journeyBitmapPending.delete(index); });
+}
+
+// Warm the frames just ahead/behind so they're ready before we reach
+// them — this is what keeps scrolling free of decode hitches.
+function journeyPrefetchAround(centerIdx) {
+  for (let d = 0; d <= 10; d++) {
+    journeyRequestBitmap(centerIdx + d, centerIdx);
+    if (d) journeyRequestBitmap(centerIdx - d, centerIdx);
+  }
+}
+
+// Returns whatever is cheapest to draw for this index: the decoded
+// bitmap if we have it, otherwise the <img> (and queue a decode).
+function journeyDrawable(index, centerIdx) {
+  const bmp = journeyBitmaps.get(index);
+  if (bmp) return bmp;
+  journeyRequestBitmap(index, centerIdx);
+  const img = journeyFrames[index];
+  return (img && img.complete && img.naturalWidth) ? img : null;
+}
+
 function isFrameReady(i) {
+  if (journeyBitmaps.has(i)) return true;
   const img = journeyFrames[i];
   return !!(img && img.complete && img.naturalWidth);
 }
@@ -2476,6 +2552,7 @@ function nearestLoadedFrame(index) {
 }
 
 let journeyLastDrawnKey = '';
+let journeyCanvasSized = false;
 // Draws the scene at a fractional frame position, cross-fading between
 // the two neighbouring frames instead of snapping from one to the next.
 // The source clip is only 6fps, so without this the motion visibly
@@ -2489,8 +2566,6 @@ function drawJourneyAtPosition(pos) {
   if (a === null) return; // nothing loaded yet
   let b = baseIdx + 1 <= JOURNEY_FRAME_COUNT - 1 ? nearestLoadedFrame(baseIdx + 1) : null;
 
-  // Skip blending when it wouldn't be visible anyway (sitting on a
-  // frame, or the neighbour isn't available) — saves a second drawImage.
   const doBlend = b !== null && b !== a && blend > 0.01 && blend < 0.99;
 
   // 3 decimals (not 2): with only 6fps of source material the blend
@@ -2500,16 +2575,30 @@ function drawJourneyAtPosition(pos) {
   if (key === journeyLastDrawnKey) return; // nothing changed, skip the redraw
   journeyLastDrawnKey = key;
 
-  const imgA = journeyFrames[a];
-  if (journeyCanvas.width !== imgA.naturalWidth) journeyCanvas.width = imgA.naturalWidth;
-  if (journeyCanvas.height !== imgA.naturalHeight) journeyCanvas.height = imgA.naturalHeight;
+  journeyPrefetchAround(baseIdx);
+
+  const srcA = journeyDrawable(a, baseIdx);
+  if (!srcA) return;
+
+  // Size the canvas backing store once, to the intended decode width —
+  // taken from the constant rather than from whatever drew first, since
+  // the very first paint may use the full-size <img> before any bitmap
+  // is ready and would otherwise lock the canvas at 1600px on a phone.
+  if (!journeyCanvasSized) {
+    journeyCanvas.width = JOURNEY_BITMAP_WIDTH;
+    journeyCanvas.height = Math.round(JOURNEY_BITMAP_WIDTH * 9 / 16);
+    journeyCanvasSized = true;
+  }
 
   journeyCtx.globalAlpha = 1;
-  journeyCtx.drawImage(imgA, 0, 0);
+  journeyCtx.drawImage(srcA, 0, 0, journeyCanvas.width, journeyCanvas.height);
   if (doBlend) {
-    journeyCtx.globalAlpha = blend;
-    journeyCtx.drawImage(journeyFrames[b], 0, 0);
-    journeyCtx.globalAlpha = 1;
+    const srcB = journeyDrawable(b, baseIdx);
+    if (srcB) {
+      journeyCtx.globalAlpha = blend;
+      journeyCtx.drawImage(srcB, 0, 0, journeyCanvas.width, journeyCanvas.height);
+      journeyCtx.globalAlpha = 1;
+    }
   }
 }
 
