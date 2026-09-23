@@ -37,6 +37,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+<!-- The Journey section's very first visible frame — preloading it lets
+     the browser start fetching it before the JS even runs, instead of
+     waiting behind everything else, which is what the hero paints as
+     its largest content. -->
+<link rel="preload" as="image" href="assets/frames/f0013.webp" fetchpriority="high">
+
 <!-- AI/LLM Discovery -->
 <link rel="alternate" type="text/plain" title="LLMs.txt" href="/llms.txt">
 
@@ -1867,11 +1873,11 @@ footer a{color:var(--gold);text-decoration:none;}
             <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
             (470) 557-7266
           </a>
-          <a href="https://instagram.com/gillydigital" target="_blank" class="contact-link">
+          <a href="https://instagram.com/gillydigital" target="_blank" rel="noopener" class="contact-link">
             <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
             @gillydigital
           </a>
-          <a href="https://www.linkedin.com/company/gilly-marketing-digital" target="_blank" class="contact-link">
+          <a href="https://www.linkedin.com/company/gilly-marketing-digital" target="_blank" rel="noopener" class="contact-link">
             <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg>
             Gilly Marketing Digital
           </a>
@@ -1919,7 +1925,7 @@ footer a{color:var(--gold);text-decoration:none;}
 <footer>
   <div class="footer-main">
     <div>&copy; 2026 Gilly Marketing Digital. All rights reserved.</div>
-    <div>Designed &amp; built by <a href="https://instagram.com/gillydigital" target="_blank">Guilherme Marques</a></div>
+    <div>Designed &amp; built by <a href="https://instagram.com/gillydigital" target="_blank" rel="noopener">Guilherme Marques</a></div>
   </div>
   <nav class="footer-links" aria-label="Services">
     <a href="social-media-management-atlanta.html">Social Media Atlanta</a>
@@ -2646,16 +2652,54 @@ function onJourneyFrameLoaded() {
     journeyLoadingEl.classList.add('hidden');
   }
 }
-for (let i = 0; i < JOURNEY_FRAME_COUNT; i++) {
+// Loading all 144 frames the instant the page opens used to fire 144
+// simultaneous requests that competed for bandwidth with the fonts and
+// scripts the page actually needs first — worst on mobile/slow
+// connections, where it could delay the very first paint of the hero.
+// Fix: load the frame the hero opens on (plus a small buffer around it)
+// immediately and at high priority, then stream the rest in afterward
+// through a small concurrency-limited queue at low priority, so they
+// fill in over time instead of front-loading the network.
+const journeyFirstCheckpointIdx = frameIndexForTime(journeyCheckpoints[0]);
+
+function loadJourneyFrame(i, priority, onSettled) {
   const img = new Image();
+  if ('fetchPriority' in img) img.fetchPriority = priority;
   img.onload = () => {
     onJourneyFrameLoaded();
-    if (i === frameIndexForTime(journeyCheckpoints[0])) drawJourneyFrame(i);
+    if (i === journeyFirstCheckpointIdx) drawJourneyFrame(i);
+    if (onSettled) onSettled();
   };
-  img.onerror = onJourneyFrameLoaded; // don't let one bad frame block the loading state forever
+  img.onerror = () => { // don't let one bad frame block the loading state forever
+    onJourneyFrameLoaded();
+    if (onSettled) onSettled();
+  };
   img.src = 'assets/frames/f' + String(i + 1).padStart(4, '0') + '.webp';
   journeyFrames[i] = img;
 }
+
+const journeyPriorityIdx = new Set([0, journeyFirstCheckpointIdx]);
+for (let d = 1; d <= 3; d++) {
+  journeyPriorityIdx.add(Math.min(JOURNEY_FRAME_COUNT - 1, journeyFirstCheckpointIdx + d));
+  journeyPriorityIdx.add(Math.max(0, journeyFirstCheckpointIdx - d));
+}
+journeyPriorityIdx.forEach((i) => loadJourneyFrame(i, 'high'));
+
+const journeyQueuedIdx = [];
+for (let i = 0; i < JOURNEY_FRAME_COUNT; i++) {
+  if (!journeyPriorityIdx.has(i)) journeyQueuedIdx.push(i);
+}
+const JOURNEY_QUEUE_CONCURRENCY = 6;
+let journeyQueueCursor = 0;
+let journeyQueueInFlight = 0;
+function pumpJourneyQueue() {
+  while (journeyQueueInFlight < JOURNEY_QUEUE_CONCURRENCY && journeyQueueCursor < journeyQueuedIdx.length) {
+    const idx = journeyQueuedIdx[journeyQueueCursor++];
+    journeyQueueInFlight++;
+    loadJourneyFrame(idx, 'low', () => { journeyQueueInFlight--; pumpJourneyQueue(); });
+  }
+}
+pumpJourneyQueue();
 
 gsap.set(journeyPanels, { opacity: 0, y: 14 });
 
