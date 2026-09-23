@@ -797,7 +797,16 @@ section{
 @media(max-width:900px){
   .journey-panel.journey-panel-about{ max-width:400px; }
   .about-split{ flex-direction:column; gap:20px; align-items:flex-start; }
-  .about-left{ max-width:100%; }
+  .about-left{
+    max-width:100%;
+    /* On mobile the columns stack, so the heading no longer sits in the
+       journey-scrim's darkened left band — it can land over a bright
+       part of the frame with no backdrop, going unreadable. Give it the
+       same scrim treatment as the body copy right below it. */
+    background:rgba(7,8,9,.82);
+    border-radius:14px;
+    padding:16px 20px;
+  }
   .about-right{ max-width:100%; margin-left:0; }
 }
 
@@ -929,7 +938,16 @@ section{
   .journey-panel.chapter-social{ margin-top:0; }
   .chapter-social .split-right{ margin-left:0; max-width:100%; }
   .chapter-graphic-v2 .gd-title,
-  .chapter-graphic-v2 .gd-copy{ position:static; max-width:100%; margin-bottom:16px; }
+  .chapter-graphic-v2 .gd-copy{
+    position:static; max-width:100%; margin-bottom:16px;
+    /* Stacking the title/copy at this width means they can no longer be
+       guaranteed clear of his face in the frame (that positioning was
+       tuned for the wider two-column layout). Add the same scrim used
+       elsewhere so the text stays legible wherever it lands. */
+    background:rgba(7,8,9,.82);
+    border-radius:14px;
+    padding:16px 20px;
+  }
   .journey-panel.chapter-center{ margin-top:60px; margin-left:0; }
 }
 .journey-progress{
@@ -2008,7 +2026,16 @@ scene.add(particles);
 // ============================================================
 //   OBJECT 5 — Contact: Ring pulse
 // ============================================================
-const ringGeo = new THREE.RingGeometry(1.2, 1.35, 64);
+// The camera's FOV is fixed vertically, so on a narrow/portrait
+// viewport the same world-space ring covers proportionally more of
+// the (narrower) screen width — on mobile it was rendering oversized
+// and drifting across the contact form fields. Shrink and dim it on
+// narrow viewports to keep it a background accent rather than an
+// overlay on the form.
+const ringIsMobileViewport = window.innerWidth <= 768;
+const ringMobileScale = ringIsMobileViewport ? 0.5 : 1;
+const ringMobileOpacityScale = ringIsMobileViewport ? 0.45 : 1;
+const ringGeo = new THREE.RingGeometry(1.2 * ringMobileScale, 1.35 * ringMobileScale, 64);
 const ringMat = new THREE.MeshBasicMaterial({
   color: GOLD,
   transparent: true,
@@ -2213,7 +2240,7 @@ function animate() {
   const ringHover = Math.max(0, 1 - ringDist / 2.5);
   hoverState.ring = lerp(hoverState.ring, ringHover, 0.06);
 
-  ringMat.opacity = contactFade * (0.15 + hoverState.ring * 0.15);
+  ringMat.opacity = contactFade * (0.15 + hoverState.ring * 0.15) * ringMobileOpacityScale;
   const ringPulseSpeed = 0.8 + hoverState.ring * 3;
   const ringScale = (1 + Math.sin(t * ringPulseSpeed) * 0.15) * (1 + hoverState.ring * 0.2);
   ring.scale.setScalar(ringScale);
