@@ -2035,12 +2035,17 @@ scene.add(particles);
 // The camera's FOV is fixed vertically, so on a narrow/portrait
 // viewport the same world-space ring covers proportionally more of
 // the (narrower) screen width — on mobile it was rendering oversized
-// and drifting across the contact form fields. Shrink and dim it on
-// narrow viewports to keep it a background accent rather than an
-// overlay on the form.
+// and drifting across the contact form fields. The contact section
+// also stacks into a single, much taller column on mobile (heading
+// on top, form below), so the ring's scroll-synced position — tuned
+// for the desktop side-by-side layout — lands over the Subject/
+// Message fields instead of behind the heading. Rather than chase a
+// per-breakpoint position fix, just don't render it as a visible
+// overlay on narrow viewports: keep the object (cheap, and other
+// code references it) but always keep its opacity at 0 there.
 const ringIsMobileViewport = window.innerWidth <= 768;
 const ringMobileScale = ringIsMobileViewport ? 0.5 : 1;
-const ringMobileOpacityScale = ringIsMobileViewport ? 0.45 : 1;
+const ringMobileOpacityScale = ringIsMobileViewport ? 0 : 1;
 const ringGeo = new THREE.RingGeometry(1.2 * ringMobileScale, 1.35 * ringMobileScale, 64);
 const ringMat = new THREE.MeshBasicMaterial({
   color: GOLD,
@@ -2731,6 +2736,31 @@ const journeyIsTouch = window.matchMedia('(hover: none), (pointer: coarse)').mat
   || ('ontouchstart' in window)
   || navigator.maxTouchPoints > 0;
 
+// ---- Touch-only smoothing loop ----
+// On a trackpad/mouse, the browser fires scroll events at a steady,
+// fine-grained rate, so updating the canvas directly from each one (see
+// the direct call below) tracks the input with no added lag. On a
+// phone, momentum scrolling delivers scroll events in irregular bursts
+// (several pixels' worth at once, then a gap) — driving the canvas
+// straight from those bursts made the footage visibly step/tremble
+// instead of gliding. Fix: on touch devices only, keep the raw target
+// but walk toward it a little every animation frame, so the visual
+// keeps moving smoothly in between the bursts rather than jumping with
+// them. Desktop keeps the original zero-lag direct update.
+let journeySmoothRaf = null;
+function journeySmoothTick() {
+  const diff = journeyTargetProgress - journeySmoothProgress;
+  if (Math.abs(diff) < 0.0004) {
+    journeySmoothProgress = journeyTargetProgress;
+    updateJourneyVisual(journeySmoothProgress);
+    journeySmoothRaf = null;
+    return;
+  }
+  journeySmoothProgress += diff * 0.3;
+  updateJourneyVisual(journeySmoothProgress);
+  journeySmoothRaf = requestAnimationFrame(journeySmoothTick);
+}
+
 journeyScrollTriggerInst = ScrollTrigger.create({
   trigger: '#journeySection',
   start: 'top top',
@@ -2740,26 +2770,31 @@ journeyScrollTriggerInst = ScrollTrigger.create({
   onUpdate(self) {
     journeyTargetProgress = self.progress;
 
-    // Ignore sub-pixel-scale scroll noise (mobile momentum/rubber-band
-    // scrolling keeps firing tiny scroll events even after the page
-    // visually "stops"). Set so that anything below roughly a third of
-    // a source frame's worth of movement is dropped — well under what's
-    // perceptible, but enough to stop the settling jitter from driving
-    // constant redraws.
-    // The trembling this originally guarded against turned out to be
-    // caused by redundant DOM writes (now cached per panel), not by the
-    // scroll events themselves. With that fixed, this floor can be much
-    // lower — passing finer scroll deltas through to the canvas for
-    // smoother scrubbing — while still dropping true sub-pixel noise.
-    const JOURNEY_NOISE_FLOOR = 0.00008;
-    if (Math.abs(self.progress - journeySmoothProgress) < JOURNEY_NOISE_FLOOR) return;
-    journeySmoothProgress = self.progress;
-
-    // Update the visual directly here, in the same pass ScrollTrigger
-    // uses to process the scroll — no separate ticker/lerp step in
-    // between, which was adding a frame (or more) of perceived lag
-    // between the user's scroll input and the page responding to it.
-    updateJourneyVisual(self.progress);
+    if (journeyIsTouch) {
+      if (!journeySmoothRaf) journeySmoothRaf = requestAnimationFrame(journeySmoothTick);
+    } else {
+      // Ignore sub-pixel-scale scroll noise (rubber-band scrolling keeps
+      // firing tiny scroll events even after the page visually "stops").
+      // Set so that anything below roughly a third of a source frame's
+      // worth of movement is dropped — well under what's perceptible,
+      // but enough to stop the settling jitter from driving constant
+      // redraws.
+      // The trembling this originally guarded against turned out to be
+      // caused by redundant DOM writes (now cached per panel), not by
+      // the scroll events themselves. With that fixed, this floor can
+      // be much lower — passing finer scroll deltas through to the
+      // canvas for smoother scrubbing — while still dropping true
+      // sub-pixel noise.
+      const JOURNEY_NOISE_FLOOR = 0.00008;
+      if (Math.abs(self.progress - journeySmoothProgress) >= JOURNEY_NOISE_FLOOR) {
+        // Update the visual directly here, in the same pass ScrollTrigger
+        // uses to process the scroll — no separate ticker/lerp step in
+        // between, which was adding a frame (or more) of perceived lag
+        // between the user's scroll input and the page responding to it.
+        journeySmoothProgress = self.progress;
+        updateJourneyVisual(self.progress);
+      }
+    }
 
     // ---- Auto-play trigger: based on the RAW scroll progress (not a
     // smoothed value, which can sweep through earlier chapters while
