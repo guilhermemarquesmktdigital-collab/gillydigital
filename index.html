@@ -701,6 +701,25 @@ section{
   position:sticky;top:0;
   height:100vh;
   height:calc(var(--journey-vh, 1vh) * 100);
+  /* The line above is intentionally locked (see the comment on
+     .journey.pin-section) so the FRAME doesn't snap as the mobile
+     address bar collapses mid-scroll. But that same lock means this
+     element's own height can go stale relative to the *real* current
+     viewport: if the page loaded with the address bar visible (a
+     shorter viewport) and the bar later collapses while scrolling
+     (revealing more real height), this sticky element stays at the
+     smaller locked size and stops short of the bottom of the screen —
+     showing a plain black gap below it (the page background peeking
+     through) until the next section arrives. `dvh` is built to track
+     the visible viewport continuously and smoothly (unlike the discrete
+     `resize` events the lock above is guarding against), so it doesn't
+     reintroduce the frame-snap problem — it only needs to win here,
+     for how tall this one visual window is, not for the pinned
+     section's total scroll distance above (which stays locked on
+     purpose). Modern mobile browsers support it; older ones just keep
+     using the locked value above.
+  */
+  height:100dvh;
   overflow:hidden;
   background:var(--bg);
 }
