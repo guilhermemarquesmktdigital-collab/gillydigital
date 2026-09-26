@@ -438,59 +438,6 @@ section{
 }
 
 /* ---- About ---- */
-.about{background:var(--bg-2);}
-.about-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:80px;
-  align-items:center;
-  max-width:1200px;
-  margin:0 auto;
-  width:100%;
-}
-.about-image{
-  position:sticky;top:120px;align-self:start;
-}
-@media(max-width:1024px){
-  .about-image{position:relative;top:auto;align-self:stretch;}
-}
-.about-image .img-wrapper{
-  width:100%;aspect-ratio:4/5;
-  border-radius:20px;
-  overflow:hidden;
-  position:relative;
-  background:linear-gradient(160deg,#2A2420,#16120E);
-  transform:translateZ(0);
-}
-.about-image .img-wrapper .depth-bg,
-.about-image .img-wrapper .depth-fg{
-  position:absolute;top:0;left:0;
-  width:100%;height:100%;
-  pointer-events:none;
-  user-select:none;
-  will-change:transform;
-}
-.about-image .img-wrapper .depth-bg{
-  z-index:1;
-  object-fit:cover;
-  scale:1.12;
-}
-.about-image .img-wrapper .depth-fg{
-  z-index:2;
-  object-fit:contain;
-  object-position:center 80%;
-  scale:1.12;
-  filter:drop-shadow(0 14px 22px rgba(0,0,0,.4));
-}
-.about-image .accent-line{
-  position:absolute;
-  bottom:-12px;right:-12px;
-  width:60%;height:60%;
-  border:2px solid var(--gold);
-  border-radius:20px;
-  opacity:.3;
-  z-index:-1; /* mantém a moldura ATRÁS da foto */
-}
 .section-label{
   font-size:11px;font-weight:600;
   letter-spacing:.3em;text-transform:uppercase;
@@ -1346,7 +1293,6 @@ footer a{color:var(--gold);text-decoration:none;}
 /* ---- Responsive ---- */
 @media(max-width:1024px){
   section{padding:100px 32px;}
-  .about-grid{grid-template-columns:1fr;gap:40px;}
   .clients-grid{grid-template-columns:repeat(2,1fr);}
   .reco-grid{grid-template-columns:1fr;}
   .hero{padding-left:32px;}
@@ -1354,7 +1300,6 @@ footer a{color:var(--gold);text-decoration:none;}
   .contact-left h2{font-size:clamp(32px,4vw,42px);}
   .pin-inner{padding:100px 24px 36px;}
   .pin-section{height:400vh;}
-  .about-image{position:relative;top:auto;align-self:stretch;}
 }
 @media(max-width:640px){
   #nav{padding:16px 20px;}
@@ -1970,141 +1915,19 @@ footer a{color:var(--gold);text-decoration:none;}
 </script>
 
 <script type="module">
-import * as THREE from 'three';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-
-// Debug: show errors on screen
-window.addEventListener('error', e => {
-  const d = document.createElement('div');
-  d.style.cssText = 'position:fixed;top:10px;left:10px;z-index:99999;background:red;color:#fff;padding:12px 18px;font:14px monospace;border-radius:8px;max-width:90vw;word-break:break-all;';
-  d.textContent = 'JS ERROR: ' + e.message + ' (line ' + e.lineno + ')';
-  document.body.appendChild(d);
-});
-window.addEventListener('unhandledrejection', e => {
-  const d = document.createElement('div');
-  d.style.cssText = 'position:fixed;top:10px;left:10px;z-index:99999;background:orange;color:#000;padding:12px 18px;font:14px monospace;border-radius:8px;max-width:90vw;word-break:break-all;';
-  d.textContent = 'PROMISE ERROR: ' + e.reason;
-  document.body.appendChild(d);
-});
-
 // ============================================================
-//   THREE.JS SCENE — Scroll-driven 3D
+//   LIGHTWEIGHT STATE — available immediately, no Three.js needed
 // ============================================================
+const sections = ['hero', 'about', 'services', 'clients', 'contact'];
+const sectionEls = sections.map(id => document.getElementById(id));
 
-const canvas = document.getElementById('scene3d');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
-
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 0, 5);
-
-// ---- Post-processing (bloom) ----
-const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.85);
-composer.addPass(bloom);
-
-// ---- Colors ----
-const GOLD = new THREE.Color('#F5C518');
-const GOLD_DIM = new THREE.Color('#D4A812');
-const WHITE = new THREE.Color('#F4F4F4');
-const DARK = new THREE.Color('#0A0A0B');
-
-// NOTE: Objects 1 (Hero icosahedron), 2 (About torus knot), and 3
-// (Services octahedra) have been removed — Hero/About/Services are now
-// a single video-driven "journey" section (see the journey script
-// block further down) and no longer need their own decorative 3D
-// objects or scroll-fade logic. Clients (Object 4) and Contact
-// (Object 5) below are unchanged.
-
-// ============================================================
-//   OBJECT 4 — Clients: Particle field (dots grid)
-// ============================================================
-const particleCount = 200;
-const particleGeo = new THREE.BufferGeometry();
-const positions = new Float32Array(particleCount * 3);
-const scales = new Float32Array(particleCount);
-for (let i = 0; i < particleCount; i++) {
-  positions[i * 3] = (Math.random() - 0.5) * 12;
-  positions[i * 3 + 1] = (Math.random() - 0.5) * 8;
-  positions[i * 3 + 2] = (Math.random() - 0.5) * 4 - 2;
-  scales[i] = Math.random();
-}
-particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-particleGeo.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
-const particleMat = new THREE.PointsMaterial({
-  color: GOLD,
-  size: 0.03,
-  transparent: true,
-  opacity: 0,
-  sizeAttenuation: true,
-});
-const particles = new THREE.Points(particleGeo, particleMat);
-scene.add(particles);
-
-// ============================================================
-//   OBJECT 5 — Contact: Ring pulse
-// ============================================================
-// The camera's FOV is fixed vertically, so on a narrow/portrait
-// viewport the same world-space ring covers proportionally more of
-// the (narrower) screen width — on mobile it was rendering oversized
-// and drifting across the contact form fields. The contact section
-// also stacks into a single, much taller column on mobile (heading
-// on top, form below), so the ring's scroll-synced position — tuned
-// for the desktop side-by-side layout — lands over the Subject/
-// Message fields instead of behind the heading. Rather than chase a
-// per-breakpoint position fix, just don't render it as a visible
-// overlay on narrow viewports: keep the object (cheap, and other
-// code references it) but always keep its opacity at 0 there.
-const ringIsMobileViewport = window.innerWidth <= 768;
-const ringMobileScale = ringIsMobileViewport ? 0.5 : 1;
-const ringMobileOpacityScale = ringIsMobileViewport ? 0 : 1;
-const ringGeo = new THREE.RingGeometry(1.2 * ringMobileScale, 1.35 * ringMobileScale, 64);
-const ringMat = new THREE.MeshBasicMaterial({
-  color: GOLD,
-  transparent: true,
-  opacity: 0,
-  side: THREE.DoubleSide,
-});
-const ring = new THREE.Mesh(ringGeo, ringMat);
-ring.position.set(0, 0, -3);
-scene.add(ring);
-
-// ============================================================
-//   LIGHTS
-// ============================================================
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-scene.add(ambientLight);
-const pointLight = new THREE.PointLight(GOLD, 1.5, 20);
-pointLight.position.set(3, 3, 5);
-scene.add(pointLight);
-const pointLight2 = new THREE.PointLight(WHITE, 0.5, 15);
-pointLight2.position.set(-3, -2, 4);
-scene.add(pointLight2);
-
-// ============================================================
-//   MOUSE TRACKING
-// ============================================================
-const mouse = { x: 0, y: 0, sx: 0, sy: 0 }; // x/y = world, sx/sy = screen NDC
-const raycaster = new THREE.Raycaster();
-const mousePlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-const intersectPoint = new THREE.Vector3();
-
+// Cursor glow works immediately without waiting on the 3D scene below —
+// it's a plain DOM overlay, not a Three.js object. `projectMouseToScene`
+// stays a no-op until initScene3D() runs, then it does the raycasting
+// that drives the particle/ring hover interactions.
+let projectMouseToScene = null;
 window.addEventListener('mousemove', (e) => {
-  mouse.sx = (e.clientX / window.innerWidth) * 2 - 1;
-  mouse.sy = -(e.clientY / window.innerHeight) * 2 + 1;
-  // Project mouse into 3D world at z=0
-  raycaster.setFromCamera(new THREE.Vector2(mouse.sx, mouse.sy), camera);
-  raycaster.ray.intersectPlane(mousePlane, intersectPoint);
-  mouse.x = intersectPoint.x;
-  mouse.y = intersectPoint.y;
-  // Cursor glow
+  if (projectMouseToScene) projectMouseToScene(e);
   const glow = document.getElementById('cursorGlow');
   glow.style.left = e.clientX + 'px';
   glow.style.top = e.clientY + 'px';
@@ -2115,71 +1938,7 @@ window.addEventListener('mouseleave', () => {
   document.getElementById('cursorGlow').classList.remove('active');
 });
 
-// Hover state for cursor
-let hoveredObject = null;
-const raycasterObjects = [ring];
-
-// ============================================================
-//   DEVICE ORIENTATION (Gyroscope) — Mobile parallax for About section
-// ============================================================
-const deviceOrientation = { beta: 0, gamma: 0, alpha: 0 }; // beta = front/back tilt, gamma = left/right tilt
-let hasDeviceOrientation = false;
-
-// Make globally accessible for the depth parallax script
-window.deviceOrientation = deviceOrientation;
-window.hasDeviceOrientation = hasDeviceOrientation;
-
-function handleDeviceOrientation(event) {
-  // Only use on mobile/tablet
-  if (window.innerWidth > 768) return;
-
-  // beta: -180 to 180 (front/back tilt), gamma: -90 to 90 (left/right tilt)
-  // Clamp and normalize to -1..1 range
-  deviceOrientation.beta = THREE.MathUtils.clamp(event.beta, -30, 30) / 30;
-  deviceOrientation.gamma = THREE.MathUtils.clamp(event.gamma, -30, 30) / 30;
-  deviceOrientation.alpha = event.alpha ? event.alpha / 360 : 0;
-  hasDeviceOrientation = true;
-  window.hasDeviceOrientation = true; // Update global
-}
-
-// Request permission on iOS 13+
-if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-  // We'll request permission on first touch/click
-  document.addEventListener('touchstart', () => {
-    DeviceOrientationEvent.requestPermission().catch(() => {});
-  }, { once: true, passive: true });
-}
-
-window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
-
-// ============================================================
-//   SCROLL STATE
-// ============================================================
-let scrollY = 0;
-let targetScrollY = 0;
-const sections = ['hero', 'about', 'services', 'clients', 'contact'];
-const sectionEls = sections.map(id => document.getElementById(id));
-
-// Smooth lerp helper
-function lerp(a, b, t) { return a + (b - a) * t; }
-const smoothMouse = { x: 0, y: 0 };
-
-function getScrollProgress() {
-  const totalHeight = document.body.scrollHeight - window.innerHeight;
-  return totalHeight > 0 ? window.scrollY / totalHeight : 0;
-}
-
-function getSectionProgress(index) {
-  const el = sectionEls[index];
-  if (!el) return 0;
-  const rect = el.getBoundingClientRect();
-  const viewH = window.innerHeight;
-  // 0 = section just entered bottom, 1 = section just left top
-  return 1 - (rect.top + rect.height) / (viewH + rect.height);
-}
-
 window.addEventListener('scroll', () => {
-  targetScrollY = window.scrollY;
   // Hide scroll indicator after first scroll
   const indicator = document.getElementById('scrollIndicator');
   if (window.scrollY > 100) indicator.classList.remove('visible');
@@ -2187,112 +1946,292 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 
 // ============================================================
-//   ANIMATION LOOP
+//   THREE.JS SCENE — Scroll-driven 3D (Clients particles + Contact ring)
 // ============================================================
-const clock = new THREE.Clock();
+// Building the WebGL context, compiling the bloom shader passes, and
+// starting an animation loop all cost real time on the main thread —
+// pure overhead for the ~majority of the page (Hero/About/Services,
+// the heaviest part of the scroll) where this scene isn't even visible.
+// Deferring it until the reader is actually approaching Clients keeps
+// that cost off the critical path, which matters most on mobile.
+let scene3DReady = false;
+async function initScene3D() {
+  if (scene3DReady) return;
+  scene3DReady = true;
 
-// Per-object hover state
-const hoverState = {
-  ring: 0,
-};
+  const THREE = await import('three');
+  const { EffectComposer } = await import('three/addons/postprocessing/EffectComposer.js');
+  const { RenderPass } = await import('three/addons/postprocessing/RenderPass.js');
+  const { UnrealBloomPass } = await import('three/addons/postprocessing/UnrealBloomPass.js');
 
-function animate() {
-  requestAnimationFrame(animate);
+  const canvas = document.getElementById('scene3d');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
 
-  // Skip the expensive WebGL render entirely while the user is nowhere
-  // near the Clients/Contact sections that actually use it — this scene
-  // sits behind everything as a fixed full-screen canvas, so rendering
-  // it while the Journey section (or anything else) covers the screen
-  // is pure wasted GPU/CPU work that competes with scroll responsiveness.
-  const clientsEl = sectionEls[3];
-  const contactEl = sectionEls[4];
-  const viewH = window.innerHeight;
-  const nearViewport = (el) => {
-    if (!el) return false;
-    const r = el.getBoundingClientRect();
-    return r.bottom > -viewH * 1.5 && r.top < viewH * 2.5;
-  };
-  if (!nearViewport(clientsEl) && !nearViewport(contactEl)) {
-    return;
-  }
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 5);
 
-  const t = clock.getElapsedTime();
+  // ---- Post-processing (bloom) ----
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.85);
+  composer.addPass(bloom);
 
-  // Smooth scroll interpolation
-  scrollY += (targetScrollY - scrollY) * 0.08;
+  // ---- Colors ----
+  const GOLD = new THREE.Color('#F5C518');
+  const WHITE = new THREE.Color('#F4F4F4');
 
-  // Smooth mouse interpolation (follows cursor with lag)
-  smoothMouse.x = lerp(smoothMouse.x, mouse.x, 0.06);
-  smoothMouse.y = lerp(smoothMouse.y, mouse.y, 0.06);
+  // NOTE: Objects 1 (Hero icosahedron), 2 (About torus knot), and 3
+  // (Services octahedra) have been removed — Hero/About/Services are now
+  // a single video-driven "journey" section (see the journey script
+  // block further down) and no longer need their own decorative 3D
+  // objects or scroll-fade logic. Clients (Object 4) and Contact
+  // (Object 5) below are unchanged.
 
-  const totalScroll = getScrollProgress();
-  const s3 = getSectionProgress(3); // clients
-  const s4 = getSectionProgress(4); // contact
-
-  // ---- Camera: parallax + mouse follow ----
-  camera.position.y = lerp(camera.position.y, -totalScroll * 2, 0.05);
-  camera.position.x = lerp(camera.position.x, Math.sin(totalScroll * Math.PI) * 0.5 + smoothMouse.x * 0.3, 0.04);
-  camera.lookAt(0, camera.position.y, 0);
-
-  // ================================================================
-  //  CLIENTS: Particles — mouse force field (push away)
-  // ================================================================
-  const clientsFade = THREE.MathUtils.clamp((s3 - 0.1) * 3, 0, 1) * (1 - THREE.MathUtils.clamp((s3 - 0.85) * 6, 0, 1));
-  particleMat.opacity = clientsFade * 0.35;
-  particles.rotation.y = t * 0.05 + s3 * Math.PI * 0.5;
-  particles.rotation.x = Math.sin(t * 0.1) * 0.1;
-
-  // Displace particles near mouse
-  const posAttr = particleGeo.getAttribute('position');
+  // ============================================================
+  //   OBJECT 4 — Clients: Particle field (dots grid)
+  // ============================================================
+  const particleCount = 200;
+  const particleGeo = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  const scales = new Float32Array(particleCount);
   for (let i = 0; i < particleCount; i++) {
-    const px = posAttr.getX(i);
-    const py = posAttr.getY(i);
-    const pdist = Math.hypot(smoothMouse.x - px, smoothMouse.y - py);
-    if (pdist < 1.5) {
-      const force = (1 - pdist / 1.5) * 0.02;
-      const angle = Math.atan2(py - smoothMouse.y, px - smoothMouse.x);
-      posAttr.setX(i, px + Math.cos(angle) * force);
-      posAttr.setY(i, py + Math.sin(angle) * force);
-    }
-    // Gently return to original position
-    const origX = positions[i * 3];
-    const origY = positions[i * 3 + 1];
-    posAttr.setX(i, lerp(posAttr.getX(i), origX, 0.005));
-    posAttr.setY(i, lerp(posAttr.getY(i), origY, 0.005));
+    positions[i * 3] = (Math.random() - 0.5) * 12;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 8;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 4 - 2;
+    scales[i] = Math.random();
   }
-  posAttr.needsUpdate = true;
+  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  particleGeo.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
+  const particleMat = new THREE.PointsMaterial({
+    color: GOLD,
+    size: 0.03,
+    transparent: true,
+    opacity: 0,
+    sizeAttenuation: true,
+  });
+  const particles = new THREE.Points(particleGeo, particleMat);
+  scene.add(particles);
 
-  // ================================================================
-  //  CONTACT: Ring — pulse intensifies on hover
-  // ================================================================
-  const contactFade = THREE.MathUtils.clamp((s4 - 0.2) * 3, 0, 1);
-  const ringDist = Math.hypot(smoothMouse.x - ring.position.x, smoothMouse.y - ring.position.y);
-  const ringHover = Math.max(0, 1 - ringDist / 2.5);
-  hoverState.ring = lerp(hoverState.ring, ringHover, 0.06);
+  // ============================================================
+  //   OBJECT 5 — Contact: Ring pulse
+  // ============================================================
+  // The camera's FOV is fixed vertically, so on a narrow/portrait
+  // viewport the same world-space ring covers proportionally more of
+  // the (narrower) screen width — on mobile it was rendering oversized
+  // and drifting across the contact form fields. The contact section
+  // also stacks into a single, much taller column on mobile (heading
+  // on top, form below), so the ring's scroll-synced position — tuned
+  // for the desktop side-by-side layout — lands over the Subject/
+  // Message fields instead of behind the heading. Rather than chase a
+  // per-breakpoint position fix, just don't render it as a visible
+  // overlay on narrow viewports: keep the object (cheap, and other
+  // code references it) but always keep its opacity at 0 there.
+  const ringIsMobileViewport = window.innerWidth <= 768;
+  const ringMobileScale = ringIsMobileViewport ? 0.5 : 1;
+  const ringMobileOpacityScale = ringIsMobileViewport ? 0 : 1;
+  const ringGeo = new THREE.RingGeometry(1.2 * ringMobileScale, 1.35 * ringMobileScale, 64);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: GOLD,
+    transparent: true,
+    opacity: 0,
+    side: THREE.DoubleSide,
+  });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.position.set(0, 0, -3);
+  scene.add(ring);
 
-  ringMat.opacity = contactFade * (0.15 + hoverState.ring * 0.15) * ringMobileOpacityScale;
-  const ringPulseSpeed = 0.8 + hoverState.ring * 3;
-  const ringScale = (1 + Math.sin(t * ringPulseSpeed) * 0.15) * (1 + hoverState.ring * 0.2);
-  ring.scale.setScalar(ringScale);
-  ring.rotation.x = Math.PI * 0.5 + Math.sin(t * 0.3) * 0.2;
-  ring.rotation.z = t * (0.1 + hoverState.ring * 0.3);
+  // ============================================================
+  //   LIGHTS
+  // ============================================================
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+  scene.add(ambientLight);
+  const pointLight = new THREE.PointLight(GOLD, 1.5, 20);
+  pointLight.position.set(3, 3, 5);
+  scene.add(pointLight);
+  const pointLight2 = new THREE.PointLight(WHITE, 0.5, 15);
+  pointLight2.position.set(-3, -2, 4);
+  scene.add(pointLight2);
 
-  // ================================================================
-  //  CURSOR — change on hover
-  // ================================================================
-  const isOverObject = hoverState.ring > 0.1;
-  canvas.style.cursor = isOverObject ? 'grab' : 'default';
+  // ============================================================
+  //   MOUSE TRACKING
+  // ============================================================
+  const mouse = { x: 0, y: 0, sx: 0, sy: 0 }; // x/y = world, sx/sy = screen NDC
+  const raycaster = new THREE.Raycaster();
+  const mousePlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+  const intersectPoint = new THREE.Vector3();
 
-  // ================================================================
-  //  BLOOM — intensify on hover
-  // ================================================================
-  bloom.strength = lerp(bloom.strength, 0.6 + hoverState.ring * 0.5, 0.05);
+  projectMouseToScene = (e) => {
+    mouse.sx = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.sy = -(e.clientY / window.innerHeight) * 2 + 1;
+    // Project mouse into 3D world at z=0
+    raycaster.setFromCamera(new THREE.Vector2(mouse.sx, mouse.sy), camera);
+    raycaster.ray.intersectPlane(mousePlane, intersectPoint);
+    mouse.x = intersectPoint.x;
+    mouse.y = intersectPoint.y;
+  };
 
-  // ---- Render ----
-  composer.render();
+  // ============================================================
+  //   SCROLL STATE
+  // ============================================================
+  let scrollY = 0;
+  let targetScrollY = window.scrollY;
+
+  // Smooth lerp helper
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  const smoothMouse = { x: 0, y: 0 };
+
+  function getScrollProgress() {
+    const totalHeight = document.body.scrollHeight - window.innerHeight;
+    return totalHeight > 0 ? window.scrollY / totalHeight : 0;
+  }
+
+  function getSectionProgress(index) {
+    const el = sectionEls[index];
+    if (!el) return 0;
+    const rect = el.getBoundingClientRect();
+    const viewH = window.innerHeight;
+    // 0 = section just entered bottom, 1 = section just left top
+    return 1 - (rect.top + rect.height) / (viewH + rect.height);
+  }
+
+  window.addEventListener('scroll', () => {
+    targetScrollY = window.scrollY;
+  }, { passive: true });
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // ============================================================
+  //   ANIMATION LOOP
+  // ============================================================
+  const clock = new THREE.Clock();
+
+  // Per-object hover state
+  const hoverState = {
+    ring: 0,
+  };
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    // Skip the expensive WebGL render entirely while the user is nowhere
+    // near the Clients/Contact sections that actually use it — this scene
+    // sits behind everything as a fixed full-screen canvas, so rendering
+    // it while the Journey section (or anything else) covers the screen
+    // is pure wasted GPU/CPU work that competes with scroll responsiveness.
+    const clientsEl = sectionEls[3];
+    const contactEl = sectionEls[4];
+    const viewH = window.innerHeight;
+    const nearViewport = (el) => {
+      if (!el) return false;
+      const r = el.getBoundingClientRect();
+      return r.bottom > -viewH * 1.5 && r.top < viewH * 2.5;
+    };
+    if (!nearViewport(clientsEl) && !nearViewport(contactEl)) {
+      return;
+    }
+
+    const t = clock.getElapsedTime();
+
+    // Smooth scroll interpolation
+    scrollY += (targetScrollY - scrollY) * 0.08;
+
+    // Smooth mouse interpolation (follows cursor with lag)
+    smoothMouse.x = lerp(smoothMouse.x, mouse.x, 0.06);
+    smoothMouse.y = lerp(smoothMouse.y, mouse.y, 0.06);
+
+    const totalScroll = getScrollProgress();
+    const s3 = getSectionProgress(3); // clients
+    const s4 = getSectionProgress(4); // contact
+
+    // ---- Camera: parallax + mouse follow ----
+    camera.position.y = lerp(camera.position.y, -totalScroll * 2, 0.05);
+    camera.position.x = lerp(camera.position.x, Math.sin(totalScroll * Math.PI) * 0.5 + smoothMouse.x * 0.3, 0.04);
+    camera.lookAt(0, camera.position.y, 0);
+
+    // ================================================================
+    //  CLIENTS: Particles — mouse force field (push away)
+    // ================================================================
+    const clientsFade = THREE.MathUtils.clamp((s3 - 0.1) * 3, 0, 1) * (1 - THREE.MathUtils.clamp((s3 - 0.85) * 6, 0, 1));
+    particleMat.opacity = clientsFade * 0.35;
+    particles.rotation.y = t * 0.05 + s3 * Math.PI * 0.5;
+    particles.rotation.x = Math.sin(t * 0.1) * 0.1;
+
+    // Displace particles near mouse
+    const posAttr = particleGeo.getAttribute('position');
+    for (let i = 0; i < particleCount; i++) {
+      const px = posAttr.getX(i);
+      const py = posAttr.getY(i);
+      const pdist = Math.hypot(smoothMouse.x - px, smoothMouse.y - py);
+      if (pdist < 1.5) {
+        const force = (1 - pdist / 1.5) * 0.02;
+        const angle = Math.atan2(py - smoothMouse.y, px - smoothMouse.x);
+        posAttr.setX(i, px + Math.cos(angle) * force);
+        posAttr.setY(i, py + Math.sin(angle) * force);
+      }
+      // Gently return to original position
+      const origX = positions[i * 3];
+      const origY = positions[i * 3 + 1];
+      posAttr.setX(i, lerp(posAttr.getX(i), origX, 0.005));
+      posAttr.setY(i, lerp(posAttr.getY(i), origY, 0.005));
+    }
+    posAttr.needsUpdate = true;
+
+    // ================================================================
+    //  CONTACT: Ring — pulse intensifies on hover
+    // ================================================================
+    const contactFade = THREE.MathUtils.clamp((s4 - 0.2) * 3, 0, 1);
+    const ringDist = Math.hypot(smoothMouse.x - ring.position.x, smoothMouse.y - ring.position.y);
+    const ringHover = Math.max(0, 1 - ringDist / 2.5);
+    hoverState.ring = lerp(hoverState.ring, ringHover, 0.06);
+
+    ringMat.opacity = contactFade * (0.15 + hoverState.ring * 0.15) * ringMobileOpacityScale;
+    const ringPulseSpeed = 0.8 + hoverState.ring * 3;
+    const ringScale = (1 + Math.sin(t * ringPulseSpeed) * 0.15) * (1 + hoverState.ring * 0.2);
+    ring.scale.setScalar(ringScale);
+    ring.rotation.x = Math.PI * 0.5 + Math.sin(t * 0.3) * 0.2;
+    ring.rotation.z = t * (0.1 + hoverState.ring * 0.3);
+
+    // ================================================================
+    //  CURSOR — change on hover
+    // ================================================================
+    const isOverObject = hoverState.ring > 0.1;
+    canvas.style.cursor = isOverObject ? 'grab' : 'default';
+
+    // ================================================================
+    //  BLOOM — intensify on hover
+    // ================================================================
+    bloom.strength = lerp(bloom.strength, 0.6 + hoverState.ring * 0.5, 0.05);
+
+    // ---- Render ----
+    composer.render();
+  }
+
+  animate();
 }
 
-animate();
+// Warm the scene well before Clients scrolls into view so there's no
+// pop-in, but not a moment sooner than that.
+if (sectionEls[3] && 'IntersectionObserver' in window) {
+  const scene3DObserver = new IntersectionObserver((entries) => {
+    if (entries.some(en => en.isIntersecting)) {
+      scene3DObserver.disconnect();
+      initScene3D();
+    }
+  }, { rootMargin: '800px 0px 800px 0px' });
+  scene3DObserver.observe(sectionEls[3]);
+} else {
+  initScene3D();
+}
 
 //   SCROLL REVEAL (IntersectionObserver + stagger)
 // ============================================================
@@ -2378,16 +2317,6 @@ if (navToggle && navLinks) {
     }
   });
 }
-
-// ============================================================
-//   RESIZE
-// ============================================================
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  composer.setSize(window.innerWidth, window.innerHeight);
-});
 
 // ============================================================
 //   GSAP SCROLL EFFECTS
@@ -3175,106 +3104,5 @@ statEls.forEach(el => {
   }
 </script>
 
-<script>
-  /* ===== About — layered depth parallax =====
-     guilherme.png (frente) e Background.jpeg (fundo) se movem
-     em velocidades diferentes conforme o mouse → ilusão de
-     profundidade. Em touch (sem cursor) ficam estáticos.
-     No mobile: usa deviceorientation (gyroscope) para efeito parallax. */
-  (function () {
-    const wrapper = document.getElementById('depthWrapper');
-    const bg = wrapper && wrapper.querySelector('.depth-bg');
-    const fg = wrapper && wrapper.querySelector('.depth-fg');
-    if (!wrapper || !bg || !fg) return;
-
-    const fine = window.matchMedia('(pointer:fine)').matches;
-    let tx = 0, ty = 0;       // alvo (mouse/orientação)
-    let cx = 0, cy = 0;       // atual (ease)
-    let hovering = false;
-    let raf = null;
-    const isMobile = window.innerWidth <= 768;
-
-    function apply() {
-      bg.style.transform = 'translate3d(' + cx * 0.35 + 'px,' + cy * 0.35 + 'px,0)';
-      fg.style.transform = 'translate3d(' + cx + 'px,' + cy + 'px,0)';
-    }
-    function tick() {
-      cx += (tx - cx) * 0.08;
-      cy += (ty - cy) * 0.08;
-      apply();
-      if (Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05) {
-        raf = requestAnimationFrame(tick);
-      } else {
-        raf = null;
-      }
-    }
-    function aim() { if (!raf) raf = requestAnimationFrame(tick); }
-
-    if (fine) {
-      wrapper.addEventListener('mousemove', (e) => {
-        hovering = true;
-        const r = wrapper.getBoundingClientRect();
-        const nx = ((e.clientX - r.left) / r.width) * 2 - 1;
-        const ny = ((e.clientY - r.top) / r.height) * 2 - 1;
-        tx = nx * 14;   // frente anda mais
-        ty = ny * 16;
-        aim();
-      });
-      wrapper.addEventListener('mouseleave', () => {
-        hovering = false;
-        tx = 0; ty = 0;
-        aim();
-      });
-    }
-
-    // Device orientation (gyroscope) for mobile
-    if (isMobile && window.DeviceOrientationEvent) {
-      // Use global deviceOrientation from Three.js module if available, or create local listener
-      const useGlobalOrientation = window.deviceOrientation && window.hasDeviceOrientation;
-
-      function updateFromOrientation() {
-        if (useGlobalOrientation) {
-          // Use shared data from Three.js module
-          const gamma = window.deviceOrientation.gamma || 0; // left/right
-          const beta = window.deviceOrientation.beta || 0;   // front/back
-          tx = gamma * 8;   // Adjust multiplier for desired effect
-          ty = -beta * 6;
-        }
-      }
-
-      // If global orientation data exists, use it
-      if (useGlobalOrientation) {
-        function orientationTick() {
-          updateFromOrientation();
-          aim();
-          requestAnimationFrame(orientationTick);
-        }
-        orientationTick();
-      } else {
-        // Fallback: local listener
-        window.addEventListener('deviceorientation', (e) => {
-          if (!e.gamma && !e.beta) return;
-          const gamma = THREE.MathUtils.clamp(e.gamma, -30, 30) / 30; // -1 to 1
-          const beta = THREE.MathUtils.clamp(e.beta, -30, 30) / 30;
-          tx = gamma * 10;
-          ty = -beta * 8;
-          aim();
-        }, { passive: true });
-      }
-    }
-
-    // Órbita lenta e contínua — a profundidade se lê mesmo sem o mouse.
-    let t = 0;
-    (function orbit() {
-      t += 1;
-      if (fine && !hovering && !isMobile) {
-        tx = Math.sin(t * 0.004) * 5;
-        ty = Math.cos(t * 0.003) * 6;
-        aim();
-      }
-      requestAnimationFrame(orbit);
-    })();
-  })();
-</script>
 </body>
 </html>
