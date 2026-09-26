@@ -2359,31 +2359,21 @@ function lockJourneyViewportHeight() {
 }
 lockJourneyViewportHeight();
 
-// The lock is deliberately NOT updated on every height-only resize (the
-// URL bar animating) — that's what stops the frame from snapping mid-
-// scroll. But leaving it stale forever after the bar settles would show
-// a permanent strip of .journey-inner's background below the now-locked
-// .journey-video/.journey-stack (they're sized off this same variable —
-// see their CSS) instead of just a brief non-issue during the gesture.
-// So: once resize events go quiet for a moment (the bar has finished
-// animating and the gesture has settled), catch the height up to
-// wherever it landed. The debounce is what keeps this from firing mid-
-// scroll and reintroducing the very jitter the lock exists to prevent.
-let journeySettleTimer = null;
-function settleJourneyViewportHeight() {
-  clearTimeout(journeySettleTimer);
-  journeySettleTimer = setTimeout(() => {
-    lockJourneyViewportHeight();
-    ScrollTrigger.refresh();
-  }, 300);
-}
-
+// The lock is deliberately NEVER updated on a height-only resize (the
+// mobile URL bar collapsing/expanding as the user scrolls) — only on an
+// actual width change (rotation or window resize). An earlier version
+// of this tried to "catch up" the lock to the new height once the bar
+// finished animating, but that correction was itself a visible jump:
+// .journey-video/.journey-stack are sized off this variable (see their
+// CSS), so re-locking to a new value snaps their size instantly, which
+// reads as the exact same zoom/jolt this is meant to prevent — just
+// delayed by the debounce instead of eliminated. Any extra height the
+// still-live 100dvh .journey-inner reveals below them for the rest of
+// the session just shows its own background, which is far less
+// noticeable than a snap.
 window.addEventListener('resize', () => {
   // Height-only changes on mobile are the URL bar — ignore them.
-  if (window.innerWidth === journeyLockedWidth) {
-    settleJourneyViewportHeight();
-    return;
-  }
+  if (window.innerWidth === journeyLockedWidth) return;
   journeyLockedWidth = window.innerWidth;
   lockJourneyViewportHeight();
   ScrollTrigger.refresh();
