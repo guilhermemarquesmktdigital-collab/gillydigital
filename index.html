@@ -2355,7 +2355,27 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 
 let journeyLockedWidth = window.innerWidth;
 function lockJourneyViewportHeight() {
-  document.documentElement.style.setProperty('--journey-vh', (window.innerHeight * 0.01) + 'px');
+  // On a mobile browser, the address bar/toolbar is chrome painted OVER
+  // the same physical screen, not a smaller window — so as it collapses
+  // mid-scroll, innerHeight only ever grows TOWARD window.screen.height,
+  // never past it. Locking to that theoretical max up front (instead of
+  // whatever innerHeight happens to be at this exact moment) means
+  // .journey-video/.journey-stack (sized off this variable) are always
+  // at least as tall as any dvh state the page will ever actually reach
+  // — so there's nothing left to catch up later: no re-lock, no jump,
+  // and no gap, since .journey-inner's overflow:hidden just clips
+  // whatever of that fixed, oversized canvas the current chrome state
+  // doesn't leave room for.
+  // Restricted to viewports spanning the full screen width, which is
+  // true of essentially every mobile browser and only coincidentally
+  // true of a desktop window — there, screen.height is the monitor's
+  // full height with no relation to the browser chrome, and the
+  // ordinary innerHeight lock (desktop chrome doesn't animate) is right.
+  const isFullBleed = window.innerWidth === window.screen.width;
+  const h = (isFullBleed && window.screen.height > window.innerHeight)
+    ? window.screen.height
+    : window.innerHeight;
+  document.documentElement.style.setProperty('--journey-vh', (h * 0.01) + 'px');
 }
 lockJourneyViewportHeight();
 
