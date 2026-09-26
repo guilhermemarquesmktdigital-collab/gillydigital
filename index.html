@@ -671,8 +671,21 @@ section{
   background:var(--bg);
 }
 .journey-video{
-  position:absolute;inset:0;
-  width:100%;height:100%;
+  position:absolute;top:0;left:0;
+  width:100%;
+  /* Locked to the same viewport-height snapshot as .journey.pin-section
+     (not the parent .journey-inner's live 100dvh) rather than height:100%.
+     .journey-inner is far taller than this 16:9 canvas, so object-fit:
+     cover scales it up based on height. Following the parent's dvh meant
+     every pixel the mobile address bar collapsed mid-scroll nudged that
+     scale a little higher — read by the user as the footage subtly
+     zooming in while they scrolled, plus the resulting layout recalcalc
+     adding to the trembling. Any extra space .journey-inner's live
+     height reveals below this locked-height layer just shows its own
+     background instead (see the JS that re-locks --journey-vh once
+     scrolling settles, so that strip doesn't linger indefinitely). */
+  height:100vh;
+  height:calc(var(--journey-vh, 1vh) * 100);
   object-fit:cover;object-position:center 30%;
   filter:saturate(1.03) contrast(1.02);
 }
@@ -695,7 +708,12 @@ section{
 }
 .journey-stack{
   position:relative;z-index:1;
-  height:100%;
+  /* Locked for the same reason as .journey-video above: keeps the text
+     vertically centered against a fixed height instead of re-centering
+     every time the address bar's collapse nudges the parent's live
+     100dvh height, which read as the text drifting during scroll. */
+  height:100vh;
+  height:calc(var(--journey-vh, 1vh) * 100);
   display:grid;
   align-items:center;
   padding:110px clamp(24px,6vw,80px);
@@ -2340,9 +2358,32 @@ function lockJourneyViewportHeight() {
   document.documentElement.style.setProperty('--journey-vh', (window.innerHeight * 0.01) + 'px');
 }
 lockJourneyViewportHeight();
+
+// The lock is deliberately NOT updated on every height-only resize (the
+// URL bar animating) — that's what stops the frame from snapping mid-
+// scroll. But leaving it stale forever after the bar settles would show
+// a permanent strip of .journey-inner's background below the now-locked
+// .journey-video/.journey-stack (they're sized off this same variable —
+// see their CSS) instead of just a brief non-issue during the gesture.
+// So: once resize events go quiet for a moment (the bar has finished
+// animating and the gesture has settled), catch the height up to
+// wherever it landed. The debounce is what keeps this from firing mid-
+// scroll and reintroducing the very jitter the lock exists to prevent.
+let journeySettleTimer = null;
+function settleJourneyViewportHeight() {
+  clearTimeout(journeySettleTimer);
+  journeySettleTimer = setTimeout(() => {
+    lockJourneyViewportHeight();
+    ScrollTrigger.refresh();
+  }, 300);
+}
+
 window.addEventListener('resize', () => {
   // Height-only changes on mobile are the URL bar — ignore them.
-  if (window.innerWidth === journeyLockedWidth) return;
+  if (window.innerWidth === journeyLockedWidth) {
+    settleJourneyViewportHeight();
+    return;
+  }
   journeyLockedWidth = window.innerWidth;
   lockJourneyViewportHeight();
   ScrollTrigger.refresh();
