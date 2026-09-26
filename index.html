@@ -960,21 +960,46 @@ section{
 
 
 /* ---- Clients ---- */
-.clients{background:var(--bg-2);}
-.clients-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:24px;
-  max-width:1200px;
-  margin:60px auto 0;
+.clients{background:var(--bg-2);flex-direction:column;}
+/* ---- Clients: auto-scrolling carousel ----
+   A pure-CSS marquee: the track holds the client cards twice back to
+   back, and an infinite keyframe animation slides it left by exactly
+   one set's width, then loops — since the second set is pixel-
+   identical to the first, the loop point is invisible. No JS/library
+   needed for the motion itself; JS below only pauses it on hover/focus
+   for readability and skips it for prefers-reduced-motion. */
+.clients-carousel{
+  margin-top:60px;
   width:100%;
+  overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image:linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.clients-track{
+  display:flex;
+  width:max-content;
+  gap:24px;
+  animation:clientsScroll 48s linear infinite;
+}
+.clients-carousel:hover .clients-track,
+.clients-carousel:focus-within .clients-track{
+  animation-play-state:paused;
+}
+@keyframes clientsScroll{
+  from{transform:translate3d(0,0,0);}
+  to{transform:translate3d(-50%,0,0);}
+}
+@media(prefers-reduced-motion:reduce){
+  .clients-track{animation:none;}
 }
 .client-card{
+  flex:0 0 auto;
+  width:300px;
   background:var(--surface);
   border:1px solid rgba(255,255,255,.06);
   border-radius:16px;
   padding:32px;
-  transition:all .35s;
+  transition:border-color .35s, transform .35s;
 }
 .client-card:hover{
   border-color:rgba(245,197,24,.12);
@@ -1311,7 +1336,6 @@ footer a{color:var(--gold);text-decoration:none;}
 /* ---- Responsive ---- */
 @media(max-width:1024px){
   section{padding:100px 32px;}
-  .clients-grid{grid-template-columns:repeat(2,1fr);}
   .reco-grid{grid-template-columns:1fr;}
   .hero{padding-left:32px;}
   .contact-grid{grid-template-columns:1fr;gap:40px;}
@@ -1352,7 +1376,7 @@ footer a{color:var(--gold);text-decoration:none;}
   }
   .nav-links a::after{display:none;}
   section{padding:80px 20px;}
-  .clients-grid{grid-template-columns:1fr;}
+  .client-card{width:78vw;padding:26px;}
   .stats{flex-direction:column;gap:24px;}
   .hero h1{font-size:40px;}
   .pin-inner{position:relative;height:auto;padding:90px 20px 32px;}
@@ -1698,7 +1722,9 @@ footer a{color:var(--gold);text-decoration:none;}
     <div style="max-width:1200px;margin:0 auto;width:100%;">
       <div class="section-label gsap-fade">Clients</div>
       <h2 class="gsap-fade" style="font-family:var(--font-display);font-size:clamp(32px,4vw,48px);font-weight:700;letter-spacing:-.02em;">Brands I've worked with across <span style="color:var(--gold);">metro Atlanta &amp; Georgia</span></h2>
-      <div class="clients-grid">
+    </div>
+    <div class="clients-carousel" id="clientsCarousel">
+      <div class="clients-track">
         <div class="client-card">
           <div class="client-name">Zinovations Medical Spa</div>
           <div class="client-handle">@zinovations</div>
@@ -1768,6 +1794,82 @@ footer a{color:var(--gold);text-decoration:none;}
           </div>
         </div>
         <div class="client-card">
+          <div class="client-name">Nana Peruvian Kitchen</div>
+          <div class="client-handle">@nana.peruviankitchen</div>
+          <div class="client-desc">Social media management for a Peruvian restaurant.</div>
+          <div class="client-tags">
+            <span class="client-tag">Social Media</span>
+          </div>
+        </div>
+        <div class="client-card" aria-hidden="true">
+          <div class="client-name">Zinovations Medical Spa</div>
+          <div class="client-handle">@zinovations</div>
+          <div class="client-desc">Paid traffic management and social media management for a luxury medical spa in Milton, GA.</div>
+          <div class="client-tags">
+            <span class="client-tag">Ads</span>
+            <span class="client-tag">Social Media</span>
+          </div>
+        </div>
+        <div class="client-card" aria-hidden="true">
+          <div class="client-name">Ezy Exteriors</div>
+          <div class="client-handle">@ezyexteriors</div>
+          <div class="client-desc">Website management, SEO optimization, and online campaigns for exterior services.</div>
+          <div class="client-tags">
+            <span class="client-tag">Web</span>
+            <span class="client-tag">SEO</span>
+            <span class="client-tag">Ads</span>
+          </div>
+        </div>
+        <div class="client-card" aria-hidden="true">
+          <div class="client-name">Onisaúde</div>
+          <div class="client-handle">@onisaude</div>
+          <div class="client-desc">Website management, social media, online campaigns, and UI design for a health platform.</div>
+          <div class="client-tags">
+            <span class="client-tag">Web</span>
+            <span class="client-tag">UI Design</span>
+            <span class="client-tag">Social Media</span>
+          </div>
+        </div>
+        <div class="client-card" aria-hidden="true">
+          <div class="client-name">FutPress</div>
+          <div class="client-handle">@futpress</div>
+          <div class="client-desc">Website creation, inbound marketing campaigns, social media design and consultancy.</div>
+          <div class="client-tags">
+            <span class="client-tag">Web</span>
+            <span class="client-tag">Inbound</span>
+            <span class="client-tag">Design</span>
+          </div>
+        </div>
+        <div class="client-card" aria-hidden="true">
+          <div class="client-name">Fabcuture Brasil</div>
+          <div class="client-handle">@fabcuturebrasil</div>
+          <div class="client-desc">Virtual store integrated with Instagram, social network management and campaign creation.</div>
+          <div class="client-tags">
+            <span class="client-tag">E-commerce</span>
+            <span class="client-tag">Social Media</span>
+          </div>
+        </div>
+        <div class="client-card" aria-hidden="true">
+          <div class="client-name">The Waxing Spot GA</div>
+          <div class="client-handle">@thewaxingspotga</div>
+          <div class="client-desc">Website management, SEO, and online campaigns for a beauty service business.</div>
+          <div class="client-tags">
+            <span class="client-tag">Web</span>
+            <span class="client-tag">SEO</span>
+            <span class="client-tag">Ads</span>
+          </div>
+        </div>
+        <div class="client-card" aria-hidden="true">
+          <div class="client-name">Advanced Prime Cleaning</div>
+          <div class="client-handle">@advancedprimeclean</div>
+          <div class="client-desc">Website creation, paid traffic management, and social media management.</div>
+          <div class="client-tags">
+            <span class="client-tag">Web</span>
+            <span class="client-tag">Ads</span>
+            <span class="client-tag">Social Media</span>
+          </div>
+        </div>
+        <div class="client-card" aria-hidden="true">
           <div class="client-name">Nana Peruvian Kitchen</div>
           <div class="client-handle">@nana.peruviankitchen</div>
           <div class="client-desc">Social media management for a Peruvian restaurant.</div>
@@ -3017,23 +3119,25 @@ function updateJourneyVisual(p) {
 // blank until the user scrolls even a pixel.
 updateJourneyVisual(0);
 
-// ---- d) Clients — Staggered Sequence Scrub ----
-const clientCards = document.querySelectorAll('.client-card');
-clientCards.forEach((card, i) => {
-  gsap.fromTo(card,
-    { x: i % 2 === 0 ? -60 : 60, opacity: 0 },
-    {
-      x: 0, opacity: 1,
-      ease: 'power2.out',
-      scrollTrigger: {
-        trigger: card,
-        start: 'top 92%',
-        end: 'top 60%',
-        scrub: 0.8,
-      }
+// ---- d) Clients — carousel fades in as a whole ----
+// Individual per-card scroll-triggered reveals don't make sense once
+// the cards are continuously auto-scrolling (see .clients-carousel /
+// .clients-track CSS) — a card sliding in from off-screen would fight
+// with the marquee motion instead of matching it. A single fade-in for
+// the whole track when it enters view keeps that visual polish.
+gsap.fromTo('#clientsCarousel',
+  { opacity: 0 },
+  {
+    opacity: 1,
+    ease: 'power2.out',
+    scrollTrigger: {
+      trigger: '#clientsCarousel',
+      start: 'top 92%',
+      end: 'top 65%',
+      scrub: 0.8,
     }
-  );
-});
+  }
+);
 
 // ---- d2) Recommendations — Staggered Sequence Scrub ----
 const recoCards = document.querySelectorAll('.reco-card');
