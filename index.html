@@ -264,7 +264,8 @@
 }
 
 html{
-  scroll-behavior:smooth;
+  scroll-behavior:auto; /* smooth is handled by GSAP; CSS smooth fights ScrollTrigger on mobile */
+  background:var(--bg);
   scrollbar-width:thin;
   scrollbar-color:var(--gold-dim) var(--bg);
 }
@@ -992,7 +993,7 @@ section{
 .journey-progress .dot.active{background:var(--gold);transform:scale(1.5);}
 @media(max-width:780px){
   .journey-progress{display:none;}
-  .journey-stack{padding:90px 22px 70px;}
+  .journey-stack{padding:90px 22px calc(70px + var(--journey-bar, 0px));}
   .journey-panel{max-width:100%;}
 }
 
@@ -1397,6 +1398,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
   .pin-inner{padding:100px 24px 36px;}
   .pin-section{height:400vh;}
   .about-image{position:relative;top:auto;align-self:stretch;}
+}
+@media(max-width:900px){
+  #nav.scrolled{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(10,10,11,.94);}
+  #nav.menu-open{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;}
 }
 @media(max-width:640px){
   #nav{padding:16px 20px;}
@@ -2228,7 +2233,26 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 
 let journeyLockedWidth = window.innerWidth;
 function lockJourneyViewportHeight() {
-  document.documentElement.style.setProperty('--journey-vh', (window.innerHeight * 0.01) + 'px');
+  // Use the LARGE viewport (browser toolbars collapsed). Locking to
+  // innerHeight at load (toolbar expanded) left a dark strip at the
+  // bottom once the iOS toolbar collapsed. A stage sized to lvh always
+  // covers the visible area; when the toolbar is showing it just
+  // overlaps the bottom edge. Falls back to innerHeight where lvh is
+  // unsupported (the probe measures 0).
+  let large = window.innerHeight;
+  try {
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:100lvh;visibility:hidden;pointer-events:none;';
+    document.body.appendChild(probe);
+    const h = probe.offsetHeight;
+    document.body.removeChild(probe);
+    if (h >= window.innerHeight) large = h;
+  } catch (e) {}
+  const root = document.documentElement.style;
+  root.setProperty('--journey-vh', (large * 0.01) + 'px');
+  // Strip hidden under the toolbar at load — lets mobile text stay
+  // visually centred in what the visitor actually sees.
+  root.setProperty('--journey-bar', Math.max(0, large - window.innerHeight) + 'px');
 }
 lockJourneyViewportHeight();
 window.addEventListener('resize', () => {
