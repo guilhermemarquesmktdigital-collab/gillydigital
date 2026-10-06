@@ -338,6 +338,14 @@ body{
   transition:width .3s;
 }
 .nav-links a:hover{color:var(--text);}
+.nav-links a.nav-lang{font-size:12px;letter-spacing:.1em;padding:6px 12px;border:1px solid rgba(255,255,255,.18);border-radius:999px;white-space:nowrap;}
+.nav-links a.nav-lang span{color:var(--gold);}
+.nav-links a.nav-lang::after{display:none;}
+.nav-links a.nav-lang:hover{border-color:var(--gold);}
+@media(max-width:640px){
+  .nav-links li:has(> a.nav-lang){display:flex;justify-content:center;margin-top:18px;}
+  .nav-links a.nav-lang{width:auto;display:inline-flex;font-size:14px;padding:10px 22px;}
+}
 .nav-links a:hover::after{width:100%;}
 
 /* Hamburger button */
@@ -1568,7 +1576,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
     gap: 16px;
     margin: 24px 0 0;
   }
-  .nav-social-link {
+  .nav-links a.nav-social-link {
     display: grid;
     place-items: center;
     width: 48px;
@@ -1624,6 +1632,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
     <li><a href="#clients">Clients</a></li>
     <li><a href="#recommendations">Recommendations</a></li>
     <li><a href="#contact" class="nav-cta">Contact</a></li>
+    <li><a href="pt.html" class="nav-lang" hreflang="pt-BR" lang="pt-BR" aria-label="Ver site em português">EN | <span>PT</span></a></li>
     <li class="nav-social">
       <a href="https://instagram.com/gillydigital" target="_blank" rel="noopener" aria-label="Instagram" class="nav-social-link">
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
