@@ -7,6 +7,9 @@
 <meta name="description" content="Atlanta-based digital marketing specialist. Social media management, web design, paid ads, graphic design &amp; drone video for brands across metro Atlanta and Georgia. Strategy + design that converts.">
 <meta name="theme-color" content="#0A0A0B">
 <link rel="canonical" href="https://gillydigital.com/">
+<link rel="alternate" hreflang="en" href="https://gillydigital.com/">
+<link rel="alternate" hreflang="pt-BR" href="https://gillydigital.com/pt.html">
+<link rel="alternate" hreflang="x-default" href="https://gillydigital.com/">
 
 <!-- Local / geo targeting -->
 <meta name="geo.region" content="US-GA">
@@ -33,15 +36,20 @@
 
 <link rel="icon" type="image/png" href="FAVICON.png">
 <link rel="apple-touch-icon" href="FAVICON.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Self-hosted variable fonts (latin) — no third-party font request -->
+<link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/space-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/inter-latin-wght-normal.woff2) format('woff2-variations'),url(fonts/inter-latin-wght-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:300 700;font-display:swap;src:url(fonts/space-grotesk-latin-wght-normal.woff2) format('woff2-variations'),url(fonts/space-grotesk-latin-wght-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
+</style>
 
 <!-- The Journey section's very first visible frame — preloading it lets
      the browser start fetching it before the JS even runs, instead of
      waiting behind everything else, which is what the hero paints as
      its largest content. -->
-<link rel="preload" as="image" href="assets/frames/f0013.webp" fetchpriority="high">
+<link rel="preload" as="image" href="assets/frames-m/f0013.webp" fetchpriority="high" media="(max-width:900px)">
+<link rel="preload" as="image" href="assets/frames/f0013.webp" fetchpriority="high" media="(min-width:901px)">
 
 <!-- AI/LLM Discovery -->
 <link rel="alternate" type="text/plain" title="LLMs.txt" href="/llms.txt">
@@ -422,6 +430,11 @@ section{
 .btn-primary{
   background:var(--gold);color:var(--bg);
 }
+.btn.btn-link,.journey-panel.hero .btn.btn-link{
+  background:none;border:0;padding:12px 6px;color:var(--text);
+  border-radius:0;box-shadow:inset 0 -1px 0 rgba(255,255,255,.35);
+}
+.btn.btn-link:hover{color:var(--gold);box-shadow:inset 0 -1px 0 var(--gold);}
 .btn-primary:hover{
   background:#FFE44D;
   transform:translateY(-2px);
@@ -438,6 +451,59 @@ section{
 }
 
 /* ---- About ---- */
+.about{background:var(--bg-2);}
+.about-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:80px;
+  align-items:center;
+  max-width:1200px;
+  margin:0 auto;
+  width:100%;
+}
+.about-image{
+  position:sticky;top:120px;align-self:start;
+}
+@media(max-width:1024px){
+  .about-image{position:relative;top:auto;align-self:stretch;}
+}
+.about-image .img-wrapper{
+  width:100%;aspect-ratio:4/5;
+  border-radius:20px;
+  overflow:hidden;
+  position:relative;
+  background:linear-gradient(160deg,#2A2420,#16120E);
+  transform:translateZ(0);
+}
+.about-image .img-wrapper .depth-bg,
+.about-image .img-wrapper .depth-fg{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  pointer-events:none;
+  user-select:none;
+  will-change:transform;
+}
+.about-image .img-wrapper .depth-bg{
+  z-index:1;
+  object-fit:cover;
+  scale:1.12;
+}
+.about-image .img-wrapper .depth-fg{
+  z-index:2;
+  object-fit:contain;
+  object-position:center 80%;
+  scale:1.12;
+  filter:drop-shadow(0 14px 22px rgba(0,0,0,.4));
+}
+.about-image .accent-line{
+  position:absolute;
+  bottom:-12px;right:-12px;
+  width:60%;height:60%;
+  border:2px solid var(--gold);
+  border-radius:20px;
+  opacity:.3;
+  z-index:-1; /* mantém a moldura ATRÁS da foto */
+}
 .section-label{
   font-size:11px;font-weight:600;
   letter-spacing:.3em;text-transform:uppercase;
@@ -648,44 +714,12 @@ section{
   position:sticky;top:0;
   height:100vh;
   height:calc(var(--journey-vh, 1vh) * 100);
-  /* The line above is intentionally locked (see the comment on
-     .journey.pin-section) so the FRAME doesn't snap as the mobile
-     address bar collapses mid-scroll. But that same lock means this
-     element's own height can go stale relative to the *real* current
-     viewport: if the page loaded with the address bar visible (a
-     shorter viewport) and the bar later collapses while scrolling
-     (revealing more real height), this sticky element stays at the
-     smaller locked size and stops short of the bottom of the screen —
-     showing a plain black gap below it (the page background peeking
-     through) until the next section arrives. `dvh` is built to track
-     the visible viewport continuously and smoothly (unlike the discrete
-     `resize` events the lock above is guarding against), so it doesn't
-     reintroduce the frame-snap problem — it only needs to win here,
-     for how tall this one visual window is, not for the pinned
-     section's total scroll distance above (which stays locked on
-     purpose). Modern mobile browsers support it; older ones just keep
-     using the locked value above.
-  */
-  height:100dvh;
   overflow:hidden;
   background:var(--bg);
 }
 .journey-video{
-  position:absolute;top:0;left:0;
-  width:100%;
-  /* Locked to the same viewport-height snapshot as .journey.pin-section
-     (not the parent .journey-inner's live 100dvh) rather than height:100%.
-     .journey-inner is far taller than this 16:9 canvas, so object-fit:
-     cover scales it up based on height. Following the parent's dvh meant
-     every pixel the mobile address bar collapsed mid-scroll nudged that
-     scale a little higher — read by the user as the footage subtly
-     zooming in while they scrolled, plus the resulting layout recalcalc
-     adding to the trembling. Any extra space .journey-inner's live
-     height reveals below this locked-height layer just shows its own
-     background instead (see the JS that re-locks --journey-vh once
-     scrolling settles, so that strip doesn't linger indefinitely). */
-  height:100vh;
-  height:calc(var(--journey-vh, 1vh) * 100);
+  position:absolute;inset:0;
+  width:100%;height:100%;
   object-fit:cover;object-position:center 30%;
   filter:saturate(1.03) contrast(1.02);
 }
@@ -706,14 +740,18 @@ section{
   background:linear-gradient(90deg, rgba(10,10,11,.46) 0%, rgba(10,10,11,.14) 36%, transparent 52%);
   pointer-events:none;
 }
+@media(max-width:900px){
+  /* Stacked mobile layout puts the hero copy over the lower half of the
+     photo (phone, shirt, hands) — the desktop left-side gradient doesn't
+     reach it. Darken the bottom instead so eyebrow + subtitle stay legible. */
+  .journey-scrim{
+    background:linear-gradient(180deg, rgba(10,10,11,.25) 0%, transparent 28%, rgba(10,10,11,.5) 55%, rgba(10,10,11,.82) 100%);
+  }
+  .journey-panel.hero .hero-tag{letter-spacing:.14em;}
+}
 .journey-stack{
   position:relative;z-index:1;
-  /* Locked for the same reason as .journey-video above: keeps the text
-     vertically centered against a fixed height instead of re-centering
-     every time the address bar's collapse nudges the parent's live
-     100dvh height, which read as the text drifting during scroll. */
-  height:100vh;
-  height:calc(var(--journey-vh, 1vh) * 100);
+  height:100%;
   display:grid;
   align-items:center;
   padding:110px clamp(24px,6vw,80px);
@@ -960,46 +998,35 @@ section{
 
 
 /* ---- Clients ---- */
-.clients{background:var(--bg-2);flex-direction:column;}
-/* ---- Clients: auto-scrolling carousel ----
-   A pure-CSS marquee: the track holds the client cards twice back to
-   back, and an infinite keyframe animation slides it left by exactly
-   one set's width, then loops — since the second set is pixel-
-   identical to the first, the loop point is invisible. No JS/library
-   needed for the motion itself; JS below only pauses it on hover/focus
-   for readability and skips it for prefers-reduced-motion. */
-.clients-carousel{
-  margin-top:60px;
-  width:100%;
-  overflow:hidden;
-  -webkit-mask-image:linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-  mask-image:linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-}
+.clients{background:var(--bg-2);}
+/* Clients: auto-scrolling carousel (pauses on hover/touch/focus; swipe or use arrows) */
+.clients-carousel{position:relative;max-width:1200px;margin:60px auto 0;width:100%;}
 .clients-track{
-  display:flex;
-  width:max-content;
-  gap:24px;
-  animation:clientsScroll 48s linear infinite;
+  display:flex;gap:24px;
+  overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-ms-overflow-style:none;
+  padding:8px 4px 12px;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 6%,#000 94%,transparent 100%);
+          mask-image:linear-gradient(90deg,transparent 0,#000 6%,#000 94%,transparent 100%);
 }
-.clients-carousel:hover .clients-track,
-.clients-carousel:focus-within .clients-track{
-  animation-play-state:paused;
+.clients-track::-webkit-scrollbar{display:none;}
+.clients-track .client-card{flex:0 0 320px;width:320px;}
+.clients-nav{display:flex;justify-content:center;gap:12px;margin-top:20px;}
+.clients-nav button{
+  width:44px;height:44px;border-radius:50%;
+  background:var(--surface);color:var(--text);
+  border:1px solid rgba(255,255,255,.12);
+  font-size:18px;cursor:pointer;transition:all .25s;
 }
-@keyframes clientsScroll{
-  from{transform:translate3d(0,0,0);}
-  to{transform:translate3d(-50%,0,0);}
-}
-@media(prefers-reduced-motion:reduce){
-  .clients-track{animation:none;}
-}
+.clients-nav button:hover{border-color:var(--gold);color:var(--gold);}
+@media(max-width:640px){ .clients-track .client-card{flex-basis:78vw;width:78vw;padding:26px;} .clients-track{gap:16px;} }
+a.client-card{display:block;color:inherit;text-decoration:none;}
 .client-card{
-  flex:0 0 auto;
-  width:300px;
   background:var(--surface);
   border:1px solid rgba(255,255,255,.06);
   border-radius:16px;
   padding:32px;
-  transition:border-color .35s, transform .35s;
+  transition:all .35s;
 }
 .client-card:hover{
   border-color:rgba(245,197,24,.12);
@@ -1319,6 +1346,32 @@ footer a{color:var(--gold);text-decoration:none;}
   transition:opacity .5s;
 }
 .scroll-indicator.visible{opacity:1;}
+/* On phones the hero CTAs sit right where the indicator is — it was
+   drawing "SCROLL" on top of the "View work" button. */
+@media(max-width:900px){ .scroll-indicator{display:none;} }
+
+/* ---- Accessibility ---- */
+.skip-link{
+  position:fixed;left:12px;top:-60px;z-index:100000;
+  background:var(--gold);color:#0A0A0B;font-weight:600;
+  padding:10px 16px;border-radius:8px;text-decoration:none;
+  transition:top .2s;
+}
+.skip-link:focus{top:12px;}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--gold);outline-offset:3px;
+}
+.form-error{
+  display:none;margin-top:14px;padding:12px 16px;border-radius:10px;
+  background:rgba(255,90,90,.1);border:1px solid rgba(255,90,90,.35);
+  color:#FFC9C9;font-size:14px;line-height:1.5;
+}
+.form-error.show{display:block;}
+.form-error a{color:var(--gold);}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{transition-duration:.01ms !important;animation-duration:.01ms !important;animation-iteration-count:1 !important;}
+}
 .scroll-indicator span{
   font-size:10px;letter-spacing:.3em;text-transform:uppercase;
   color:var(--text-dim);
@@ -1336,12 +1389,14 @@ footer a{color:var(--gold);text-decoration:none;}
 /* ---- Responsive ---- */
 @media(max-width:1024px){
   section{padding:100px 32px;}
+  .about-grid{grid-template-columns:1fr;gap:40px;}
   .reco-grid{grid-template-columns:1fr;}
   .hero{padding-left:32px;}
   .contact-grid{grid-template-columns:1fr;gap:40px;}
   .contact-left h2{font-size:clamp(32px,4vw,42px);}
   .pin-inner{padding:100px 24px 36px;}
   .pin-section{height:400vh;}
+  .about-image{position:relative;top:auto;align-self:stretch;}
 }
 @media(max-width:640px){
   #nav{padding:16px 20px;}
@@ -1376,7 +1431,6 @@ footer a{color:var(--gold);text-decoration:none;}
   }
   .nav-links a::after{display:none;}
   section{padding:80px 20px;}
-  .client-card{width:78vw;padding:26px;}
   .stats{flex-direction:column;gap:24px;}
   .hero h1{font-size:40px;}
   .pin-inner{position:relative;height:auto;padding:90px 20px 32px;}
@@ -1583,7 +1637,8 @@ footer a{color:var(--gold);text-decoration:none;}
   </button>
 </div>
 
-<div class="content">
+<a href="#main" class="skip-link">Skip to content</a>
+<main class="content" id="main">
 
   <!-- ======== HERO ======== -->
   <!-- ======== JOURNEY — single continuous scroll-scrubbed video sequence
@@ -1611,7 +1666,7 @@ footer a{color:var(--gold);text-decoration:none;}
           <p class="hero-sub">From social media management to paid traffic and web design — I build digital presences that convert for businesses across metro Atlanta and Georgia.</p>
           <div class="hero-cta">
             <a href="#contact" class="btn btn-primary">Let's talk</a>
-            <a href="#clients" class="btn btn-outline">View work</a>
+            <a href="#clients" class="btn btn-link">See my work <span aria-hidden="true">→</span></a>
           </div>
         </div>
 
@@ -1721,11 +1776,10 @@ footer a{color:var(--gold);text-decoration:none;}
   <section class="clients" id="clients">
     <div style="max-width:1200px;margin:0 auto;width:100%;">
       <div class="section-label gsap-fade">Clients</div>
-      <h2 class="gsap-fade" style="font-family:var(--font-display);font-size:clamp(32px,4vw,48px);font-weight:700;letter-spacing:-.02em;">Brands I've worked with <span style="color:var(--gold);">around the world</span></h2>
-    </div>
-    <div class="clients-carousel" id="clientsCarousel">
-      <div class="clients-track">
-        <div class="client-card">
+      <h2 class="gsap-fade" style="font-family:var(--font-display);font-size:clamp(32px,4vw,48px);font-weight:700;letter-spacing:-.02em;">Brands I've worked with across <span style="color:var(--gold);">metro Atlanta &amp; Georgia</span></h2>
+      <div class="clients-carousel" role="region" aria-roledescription="carousel" aria-label="Clients">
+      <div class="clients-track" id="clientsTrack">
+        <a class="client-card" href="https://instagram.com/zinovations" target="_blank" rel="noopener">
           <div class="client-name">Zinovations Medical Spa</div>
           <div class="client-handle">@zinovations</div>
           <div class="client-desc">Paid traffic management and social media management for a luxury medical spa in Milton, GA.</div>
@@ -1733,8 +1787,8 @@ footer a{color:var(--gold);text-decoration:none;}
             <span class="client-tag">Ads</span>
             <span class="client-tag">Social Media</span>
           </div>
-        </div>
-        <div class="client-card">
+        </a>
+        <a class="client-card" href="https://instagram.com/ezyexteriors" target="_blank" rel="noopener">
           <div class="client-name">Ezy Exteriors</div>
           <div class="client-handle">@ezyexteriors</div>
           <div class="client-desc">Website management, SEO optimization, and online campaigns for exterior services.</div>
@@ -1743,8 +1797,8 @@ footer a{color:var(--gold);text-decoration:none;}
             <span class="client-tag">SEO</span>
             <span class="client-tag">Ads</span>
           </div>
-        </div>
-        <div class="client-card">
+        </a>
+        <a class="client-card" href="https://instagram.com/onisaude" target="_blank" rel="noopener">
           <div class="client-name">Onisaúde</div>
           <div class="client-handle">@onisaude</div>
           <div class="client-desc">Website management, social media, online campaigns, and UI design for a health platform.</div>
@@ -1753,8 +1807,8 @@ footer a{color:var(--gold);text-decoration:none;}
             <span class="client-tag">UI Design</span>
             <span class="client-tag">Social Media</span>
           </div>
-        </div>
-        <div class="client-card">
+        </a>
+        <a class="client-card" href="https://instagram.com/futpress" target="_blank" rel="noopener">
           <div class="client-name">FutPress</div>
           <div class="client-handle">@futpress</div>
           <div class="client-desc">Website creation, inbound marketing campaigns, social media design and consultancy.</div>
@@ -1763,8 +1817,8 @@ footer a{color:var(--gold);text-decoration:none;}
             <span class="client-tag">Inbound</span>
             <span class="client-tag">Design</span>
           </div>
-        </div>
-        <div class="client-card">
+        </a>
+        <a class="client-card" href="https://instagram.com/fabcuturebrasil" target="_blank" rel="noopener">
           <div class="client-name">Fabcuture Brasil</div>
           <div class="client-handle">@fabcuturebrasil</div>
           <div class="client-desc">Virtual store integrated with Instagram, social network management and campaign creation.</div>
@@ -1772,8 +1826,8 @@ footer a{color:var(--gold);text-decoration:none;}
             <span class="client-tag">E-commerce</span>
             <span class="client-tag">Social Media</span>
           </div>
-        </div>
-        <div class="client-card">
+        </a>
+        <a class="client-card" href="https://instagram.com/thewaxingspotga" target="_blank" rel="noopener">
           <div class="client-name">The Waxing Spot GA</div>
           <div class="client-handle">@thewaxingspotga</div>
           <div class="client-desc">Website management, SEO, and online campaigns for a beauty service business.</div>
@@ -1782,8 +1836,8 @@ footer a{color:var(--gold);text-decoration:none;}
             <span class="client-tag">SEO</span>
             <span class="client-tag">Ads</span>
           </div>
-        </div>
-        <div class="client-card">
+        </a>
+        <a class="client-card" href="https://instagram.com/advancedprimeclean" target="_blank" rel="noopener">
           <div class="client-name">Advanced Prime Cleaning</div>
           <div class="client-handle">@advancedprimeclean</div>
           <div class="client-desc">Website creation, paid traffic management, and social media management.</div>
@@ -1792,91 +1846,57 @@ footer a{color:var(--gold);text-decoration:none;}
             <span class="client-tag">Ads</span>
             <span class="client-tag">Social Media</span>
           </div>
-        </div>
-        <div class="client-card">
+        </a>
+        <a class="client-card" href="https://instagram.com/nana.peruviankitchen" target="_blank" rel="noopener">
           <div class="client-name">Nana Peruvian Kitchen</div>
           <div class="client-handle">@nana.peruviankitchen</div>
           <div class="client-desc">Social media management for a Peruvian restaurant.</div>
           <div class="client-tags">
             <span class="client-tag">Social Media</span>
           </div>
-        </div>
-        <div class="client-card" aria-hidden="true">
-          <div class="client-name">Zinovations Medical Spa</div>
-          <div class="client-handle">@zinovations</div>
-          <div class="client-desc">Paid traffic management and social media management for a luxury medical spa in Milton, GA.</div>
-          <div class="client-tags">
-            <span class="client-tag">Ads</span>
-            <span class="client-tag">Social Media</span>
-          </div>
-        </div>
-        <div class="client-card" aria-hidden="true">
-          <div class="client-name">Ezy Exteriors</div>
-          <div class="client-handle">@ezyexteriors</div>
-          <div class="client-desc">Website management, SEO optimization, and online campaigns for exterior services.</div>
+        </a>
+        <a class="client-card" href="https://m9sports.com.br" target="_blank" rel="noopener">
+          <div class="client-name">M9 Sports</div>
+          <div class="client-handle">m9sports.com.br</div>
+          <div class="client-desc">Website for a CBF-FIFA licensed football agency representing professional athletes.</div>
           <div class="client-tags">
             <span class="client-tag">Web</span>
-            <span class="client-tag">SEO</span>
-            <span class="client-tag">Ads</span>
           </div>
-        </div>
-        <div class="client-card" aria-hidden="true">
-          <div class="client-name">Onisaúde</div>
-          <div class="client-handle">@onisaude</div>
-          <div class="client-desc">Website management, social media, online campaigns, and UI design for a health platform.</div>
+        </a>
+        <a class="client-card" href="https://www.abexfutebol.com.br" target="_blank" rel="noopener">
+          <div class="client-name">ABEX Futebol</div>
+          <div class="client-handle">abexfutebol.com.br</div>
+          <div class="client-desc">Website for the Brazilian association of football executives — events, courses, and networking.</div>
           <div class="client-tags">
             <span class="client-tag">Web</span>
-            <span class="client-tag">UI Design</span>
-            <span class="client-tag">Social Media</span>
           </div>
-        </div>
-        <div class="client-card" aria-hidden="true">
-          <div class="client-name">FutPress</div>
-          <div class="client-handle">@futpress</div>
-          <div class="client-desc">Website creation, inbound marketing campaigns, social media design and consultancy.</div>
+        </a>
+        <a class="client-card" href="https://www.futfanoficial.com.br" target="_blank" rel="noopener">
+          <div class="client-name">Futfan360</div>
+          <div class="client-handle">futfanoficial.com.br</div>
+          <div class="client-desc">Online store for autographed football shirts and player experiences.</div>
           <div class="client-tags">
             <span class="client-tag">Web</span>
-            <span class="client-tag">Inbound</span>
-            <span class="client-tag">Design</span>
           </div>
-        </div>
-        <div class="client-card" aria-hidden="true">
-          <div class="client-name">Fabcuture Brasil</div>
-          <div class="client-handle">@fabcuturebrasil</div>
-          <div class="client-desc">Virtual store integrated with Instagram, social network management and campaign creation.</div>
-          <div class="client-tags">
-            <span class="client-tag">E-commerce</span>
-            <span class="client-tag">Social Media</span>
-          </div>
-        </div>
-        <div class="client-card" aria-hidden="true">
-          <div class="client-name">The Waxing Spot GA</div>
-          <div class="client-handle">@thewaxingspotga</div>
-          <div class="client-desc">Website management, SEO, and online campaigns for a beauty service business.</div>
+        </a>
+        <a class="client-card" href="https://www.riosucree.com.br" target="_blank" rel="noopener">
+          <div class="client-name">Rio Sucrée</div>
+          <div class="client-handle">riosucree.com.br</div>
+          <div class="client-desc">Website for a sophisticated bakery in Rio de Janeiro — custom cakes, cheesecakes, and pastries.</div>
           <div class="client-tags">
             <span class="client-tag">Web</span>
-            <span class="client-tag">SEO</span>
-            <span class="client-tag">Ads</span>
           </div>
-        </div>
-        <div class="client-card" aria-hidden="true">
-          <div class="client-name">Advanced Prime Cleaning</div>
-          <div class="client-handle">@advancedprimeclean</div>
-          <div class="client-desc">Website creation, paid traffic management, and social media management.</div>
+        </a>
+        <a class="client-card" href="https://www.dshardwoodfloorsinc.com/" target="_blank" rel="noopener">
+          <div class="client-name">DS Hardwood Floors</div>
+          <div class="client-handle">dshardwoodfloorsinc.com</div>
+          <div class="client-desc">Website for a hardwood flooring company.</div>
           <div class="client-tags">
             <span class="client-tag">Web</span>
-            <span class="client-tag">Ads</span>
-            <span class="client-tag">Social Media</span>
           </div>
-        </div>
-        <div class="client-card" aria-hidden="true">
-          <div class="client-name">Nana Peruvian Kitchen</div>
-          <div class="client-handle">@nana.peruviankitchen</div>
-          <div class="client-desc">Social media management for a Peruvian restaurant.</div>
-          <div class="client-tags">
-            <span class="client-tag">Social Media</span>
-          </div>
-        </div>
+        </a>
+      </div>
+      <div class="clients-nav"><button type="button" id="clientsPrev" aria-label="Previous clients">←</button><button type="button" id="clientsNext" aria-label="Next clients">→</button></div>
       </div>
     </div>
   </section>
@@ -1895,7 +1915,7 @@ footer a{color:var(--gold);text-decoration:none;}
             <div class="reco-avatar">R</div>
             <div>
               <div class="reco-name">Renato Bonfiglioli Muoio</div>
-              <div class="reco-role">Diretor de Novos Negócios, Futpress</div>
+              <div class="reco-role">Director of New Business, Futpress</div>
             </div>
             <svg class="reco-linkedin" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-label="LinkedIn recommendation"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg>
           </div>
@@ -1950,10 +1970,14 @@ footer a{color:var(--gold);text-decoration:none;}
       <div class="contact-left">
         <div class="section-label">Get in touch</div>
         <h2>Let's build something <span style="color:var(--gold);">great</span> together</h2>
-        <p>Based in Atlanta, GA — available for work across metro Atlanta and all of Georgia. For more information and quotes, fill out the form or reach me directly.</p>
+        <p>Based in Atlanta, serving metro Atlanta and all of Georgia. Tell me about your project and I'll reply with next steps — or call me directly.</p>
         <p class="contact-area"><span>Areas served:</span> Atlanta · Alpharetta · Roswell · Milton · Marietta · Kennesaw · Sandy Springs · Decatur · Buckhead · Johns Creek · Cumming · all of Georgia</p>
         <div class="contact-links">
-          <a href="tel:4705577266" class="contact-link">
+          <a href="https://wa.me/14705577266?text=Hi%20Guilherme%2C%20I%20found%20Gilly%20Digital%20and%20I%27d%20like%20to%20talk%20about%20a%20project." target="_blank" rel="noopener" class="contact-link">
+          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21l1.65-4.95A8.5 8.5 0 1 1 8 19.35L3 21z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-.75.75A3.5 3.5 0 0 1 10.5 10.5l.75-.75-1-2L9 9.5z"/></svg>
+          WhatsApp
+        </a>
+          <a href="tel:+14705577266" class="contact-link">
             <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
             (470) 557-7266
           </a>
@@ -1972,39 +1996,40 @@ footer a{color:var(--gold);text-decoration:none;}
           <div class="form-row">
             <div class="form-group">
               <label for="name">Name</label>
-              <input type="text" id="name" name="name" placeholder="Your name" required>
+              <input type="text" id="name" name="name" placeholder="Your name" autocomplete="name" required>
             </div>
             <div class="form-group">
               <label for="email">Email</label>
-              <input type="email" id="email" name="email" placeholder="your@email.com" required>
+              <input type="email" id="email" name="email" placeholder="you@company.com" autocomplete="email" required>
             </div>
             <div class="form-group">
               <label for="phone">Phone</label>
-              <input type="tel" id="phone" name="phone" placeholder="Country code + number">
+              <input type="tel" id="phone" name="phone" placeholder="(optional) Phone number" autocomplete="tel">
             </div>
           </div>
           <div class="form-group">
             <label for="subject">Subject</label>
-            <input type="text" id="subject" name="subject" placeholder="How can I help you?">
+            <input type="text" id="subject" name="subject" placeholder="e.g. Instagram management for my business">
           </div>
           <div class="form-group">
             <label for="message">Message</label>
-            <textarea id="message" name="message" rows="5" placeholder="Tell me about your project..." required></textarea>
+            <textarea id="message" name="message" rows="5" placeholder="What are you trying to grow, and by when?" required></textarea>
           </div>
           <button type="submit" class="btn btn-primary btn-submit">
             <span>Send message</span>
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
-          <div class="form-success" id="formSuccess">
+          <div class="form-success" id="formSuccess" role="status" aria-live="polite">
             <svg width="24" height="24" fill="none" stroke="var(--gold)" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-            <span>Message sent! I'll get back to you soon.</span>
+            <span>Message sent! I'll reply within one business day.</span>
           </div>
+          <div class="form-error" id="formError" role="alert"></div>
         </form>
       </div>
     </div>
   </section>
 
-</div>
+</main>
 
 <footer>
   <div class="footer-main">
@@ -2017,341 +2042,87 @@ footer a{color:var(--gold);text-decoration:none;}
     <a href="web-design-atlanta.html">Web Design Atlanta</a>
     <a href="paid-ads-atlanta.html">Paid Ads Atlanta</a>
     <a href="drone-video-atlanta.html">Drone Video Atlanta</a>
+    <a href="pt.html" hreflang="pt-BR" lang="pt-BR">Português</a>
   </nav>
 </footer>
 
 <!-- ======== SCRIPTS ======== -->
-<!-- GSAP + ScrollTrigger -->
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<!-- GSAP + ScrollTrigger (self-hosted) -->
+<script src="vendor/gsap.min.js" defer></script>
+<script src="vendor/ScrollTrigger.min.js" defer></script>
 
 <script type="importmap">
 {
   "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    "three": "./vendor/three.module.min.js",
+    "three/addons/": "./vendor/three-addons/"
   }
 }
 </script>
 
 <script type="module">
-// ============================================================
-//   LIGHTWEIGHT STATE — available immediately, no Three.js needed
-// ============================================================
-const sections = ['hero', 'about', 'services', 'clients', 'contact'];
-const sectionEls = sections.map(id => document.getElementById(id));
+// Errors go to the console only — visitors should never see a debug overlay.
+// (Add ?debug to the URL to get the on-screen error box back while testing.)
+if (/[?&]debug\b/.test(location.search)) {
+  const showErr = (bg, fg, text) => {
+    const d = document.createElement('div');
+    d.style.cssText = 'position:fixed;top:10px;left:10px;z-index:99999;background:' + bg + ';color:' + fg + ';padding:12px 18px;font:14px monospace;border-radius:8px;max-width:90vw;word-break:break-all;';
+    d.textContent = text;
+    document.body.appendChild(d);
+  };
+  window.addEventListener('error', e => showErr('red', '#fff', 'JS ERROR: ' + e.message + ' (line ' + e.lineno + ')'));
+  window.addEventListener('unhandledrejection', e => showErr('orange', '#000', 'PROMISE ERROR: ' + e.reason));
+}
 
-// Cursor glow works immediately without waiting on the 3D scene below —
-// it's a plain DOM overlay, not a Three.js object. `projectMouseToScene`
-// stays a no-op until initScene3D() runs, then it does the raycasting
-// that drives the particle/ring hover interactions.
-let projectMouseToScene = null;
+// ============================================================
+//   CURSOR GLOW + SCROLL INDICATOR (no 3D dependency)
+// ============================================================
+const cursorGlowEl = document.getElementById('cursorGlow');
 window.addEventListener('mousemove', (e) => {
-  if (projectMouseToScene) projectMouseToScene(e);
-  const glow = document.getElementById('cursorGlow');
-  glow.style.left = e.clientX + 'px';
-  glow.style.top = e.clientY + 'px';
-  glow.classList.add('active');
+  cursorGlowEl.style.left = e.clientX + 'px';
+  cursorGlowEl.style.top = e.clientY + 'px';
+  cursorGlowEl.classList.add('active');
 }, { passive: true });
-
-window.addEventListener('mouseleave', () => {
-  document.getElementById('cursorGlow').classList.remove('active');
-});
-
+window.addEventListener('mouseleave', () => cursorGlowEl.classList.remove('active'));
 window.addEventListener('scroll', () => {
-  // Hide scroll indicator after first scroll
   const indicator = document.getElementById('scrollIndicator');
   if (window.scrollY > 100) indicator.classList.remove('visible');
   else indicator.classList.add('visible');
 }, { passive: true });
 
 // ============================================================
-//   THREE.JS SCENE — Scroll-driven 3D (Clients particles + Contact ring)
+//   DEVICE ORIENTATION (Gyroscope) — Mobile parallax for About section
 // ============================================================
-// Building the WebGL context, compiling the bloom shader passes, and
-// starting an animation loop all cost real time on the main thread —
-// pure overhead for the ~majority of the page (Hero/About/Services,
-// the heaviest part of the scroll) where this scene isn't even visible.
-// Deferring it until the reader is actually approaching Clients keeps
-// that cost off the critical path, which matters most on mobile.
-let scene3DReady = false;
-async function initScene3D() {
-  if (scene3DReady) return;
-  scene3DReady = true;
+const deviceOrientation = { beta: 0, gamma: 0, alpha: 0 }; // beta = front/back tilt, gamma = left/right tilt
+let hasDeviceOrientation = false;
 
-  const THREE = await import('three');
-  const { EffectComposer } = await import('three/addons/postprocessing/EffectComposer.js');
-  const { RenderPass } = await import('three/addons/postprocessing/RenderPass.js');
-  const { UnrealBloomPass } = await import('three/addons/postprocessing/UnrealBloomPass.js');
+// Make globally accessible for the depth parallax script
+window.deviceOrientation = deviceOrientation;
+window.hasDeviceOrientation = hasDeviceOrientation;
 
-  const canvas = document.getElementById('scene3d');
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+function handleDeviceOrientation(event) {
+  // Only use on mobile/tablet
+  if (window.innerWidth > 768) return;
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.set(0, 0, 5);
-
-  // ---- Post-processing (bloom) ----
-  const composer = new EffectComposer(renderer);
-  composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.85);
-  composer.addPass(bloom);
-
-  // ---- Colors ----
-  const GOLD = new THREE.Color('#F5C518');
-  const WHITE = new THREE.Color('#F4F4F4');
-
-  // NOTE: Objects 1 (Hero icosahedron), 2 (About torus knot), and 3
-  // (Services octahedra) have been removed — Hero/About/Services are now
-  // a single video-driven "journey" section (see the journey script
-  // block further down) and no longer need their own decorative 3D
-  // objects or scroll-fade logic. Clients (Object 4) and Contact
-  // (Object 5) below are unchanged.
-
-  // ============================================================
-  //   OBJECT 4 — Clients: Particle field (dots grid)
-  // ============================================================
-  const particleCount = 200;
-  const particleGeo = new THREE.BufferGeometry();
-  const positions = new Float32Array(particleCount * 3);
-  const scales = new Float32Array(particleCount);
-  for (let i = 0; i < particleCount; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 12;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 8;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 4 - 2;
-    scales[i] = Math.random();
-  }
-  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  particleGeo.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
-  const particleMat = new THREE.PointsMaterial({
-    color: GOLD,
-    size: 0.03,
-    transparent: true,
-    opacity: 0,
-    sizeAttenuation: true,
-  });
-  const particles = new THREE.Points(particleGeo, particleMat);
-  scene.add(particles);
-
-  // ============================================================
-  //   OBJECT 5 — Contact: Ring pulse
-  // ============================================================
-  // The camera's FOV is fixed vertically, so on a narrow/portrait
-  // viewport the same world-space ring covers proportionally more of
-  // the (narrower) screen width — on mobile it was rendering oversized
-  // and drifting across the contact form fields. The contact section
-  // also stacks into a single, much taller column on mobile (heading
-  // on top, form below), so the ring's scroll-synced position — tuned
-  // for the desktop side-by-side layout — lands over the Subject/
-  // Message fields instead of behind the heading. Rather than chase a
-  // per-breakpoint position fix, just don't render it as a visible
-  // overlay on narrow viewports: keep the object (cheap, and other
-  // code references it) but always keep its opacity at 0 there.
-  const ringIsMobileViewport = window.innerWidth <= 768;
-  const ringMobileScale = ringIsMobileViewport ? 0.5 : 1;
-  const ringMobileOpacityScale = ringIsMobileViewport ? 0 : 1;
-  const ringGeo = new THREE.RingGeometry(1.2 * ringMobileScale, 1.35 * ringMobileScale, 64);
-  const ringMat = new THREE.MeshBasicMaterial({
-    color: GOLD,
-    transparent: true,
-    opacity: 0,
-    side: THREE.DoubleSide,
-  });
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.position.set(0, 0, -3);
-  scene.add(ring);
-
-  // ============================================================
-  //   LIGHTS
-  // ============================================================
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-  scene.add(ambientLight);
-  const pointLight = new THREE.PointLight(GOLD, 1.5, 20);
-  pointLight.position.set(3, 3, 5);
-  scene.add(pointLight);
-  const pointLight2 = new THREE.PointLight(WHITE, 0.5, 15);
-  pointLight2.position.set(-3, -2, 4);
-  scene.add(pointLight2);
-
-  // ============================================================
-  //   MOUSE TRACKING
-  // ============================================================
-  const mouse = { x: 0, y: 0, sx: 0, sy: 0 }; // x/y = world, sx/sy = screen NDC
-  const raycaster = new THREE.Raycaster();
-  const mousePlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-  const intersectPoint = new THREE.Vector3();
-
-  projectMouseToScene = (e) => {
-    mouse.sx = (e.clientX / window.innerWidth) * 2 - 1;
-    mouse.sy = -(e.clientY / window.innerHeight) * 2 + 1;
-    // Project mouse into 3D world at z=0
-    raycaster.setFromCamera(new THREE.Vector2(mouse.sx, mouse.sy), camera);
-    raycaster.ray.intersectPlane(mousePlane, intersectPoint);
-    mouse.x = intersectPoint.x;
-    mouse.y = intersectPoint.y;
-  };
-
-  // ============================================================
-  //   SCROLL STATE
-  // ============================================================
-  let scrollY = 0;
-  let targetScrollY = window.scrollY;
-
-  // Smooth lerp helper
-  function lerp(a, b, t) { return a + (b - a) * t; }
-  const smoothMouse = { x: 0, y: 0 };
-
-  function getScrollProgress() {
-    const totalHeight = document.body.scrollHeight - window.innerHeight;
-    return totalHeight > 0 ? window.scrollY / totalHeight : 0;
-  }
-
-  function getSectionProgress(index) {
-    const el = sectionEls[index];
-    if (!el) return 0;
-    const rect = el.getBoundingClientRect();
-    const viewH = window.innerHeight;
-    // 0 = section just entered bottom, 1 = section just left top
-    return 1 - (rect.top + rect.height) / (viewH + rect.height);
-  }
-
-  window.addEventListener('scroll', () => {
-    targetScrollY = window.scrollY;
-  }, { passive: true });
-
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    composer.setSize(window.innerWidth, window.innerHeight);
-  });
-
-  // ============================================================
-  //   ANIMATION LOOP
-  // ============================================================
-  const clock = new THREE.Clock();
-
-  // Per-object hover state
-  const hoverState = {
-    ring: 0,
-  };
-
-  function animate() {
-    requestAnimationFrame(animate);
-
-    // Skip the expensive WebGL render entirely while the user is nowhere
-    // near the Clients/Contact sections that actually use it — this scene
-    // sits behind everything as a fixed full-screen canvas, so rendering
-    // it while the Journey section (or anything else) covers the screen
-    // is pure wasted GPU/CPU work that competes with scroll responsiveness.
-    const clientsEl = sectionEls[3];
-    const contactEl = sectionEls[4];
-    const viewH = window.innerHeight;
-    const nearViewport = (el) => {
-      if (!el) return false;
-      const r = el.getBoundingClientRect();
-      return r.bottom > -viewH * 1.5 && r.top < viewH * 2.5;
-    };
-    if (!nearViewport(clientsEl) && !nearViewport(contactEl)) {
-      return;
-    }
-
-    const t = clock.getElapsedTime();
-
-    // Smooth scroll interpolation
-    scrollY += (targetScrollY - scrollY) * 0.08;
-
-    // Smooth mouse interpolation (follows cursor with lag)
-    smoothMouse.x = lerp(smoothMouse.x, mouse.x, 0.06);
-    smoothMouse.y = lerp(smoothMouse.y, mouse.y, 0.06);
-
-    const totalScroll = getScrollProgress();
-    const s3 = getSectionProgress(3); // clients
-    const s4 = getSectionProgress(4); // contact
-
-    // ---- Camera: parallax + mouse follow ----
-    camera.position.y = lerp(camera.position.y, -totalScroll * 2, 0.05);
-    camera.position.x = lerp(camera.position.x, Math.sin(totalScroll * Math.PI) * 0.5 + smoothMouse.x * 0.3, 0.04);
-    camera.lookAt(0, camera.position.y, 0);
-
-    // ================================================================
-    //  CLIENTS: Particles — mouse force field (push away)
-    // ================================================================
-    const clientsFade = THREE.MathUtils.clamp((s3 - 0.1) * 3, 0, 1) * (1 - THREE.MathUtils.clamp((s3 - 0.85) * 6, 0, 1));
-    particleMat.opacity = clientsFade * 0.35;
-    particles.rotation.y = t * 0.05 + s3 * Math.PI * 0.5;
-    particles.rotation.x = Math.sin(t * 0.1) * 0.1;
-
-    // Displace particles near mouse
-    const posAttr = particleGeo.getAttribute('position');
-    for (let i = 0; i < particleCount; i++) {
-      const px = posAttr.getX(i);
-      const py = posAttr.getY(i);
-      const pdist = Math.hypot(smoothMouse.x - px, smoothMouse.y - py);
-      if (pdist < 1.5) {
-        const force = (1 - pdist / 1.5) * 0.02;
-        const angle = Math.atan2(py - smoothMouse.y, px - smoothMouse.x);
-        posAttr.setX(i, px + Math.cos(angle) * force);
-        posAttr.setY(i, py + Math.sin(angle) * force);
-      }
-      // Gently return to original position
-      const origX = positions[i * 3];
-      const origY = positions[i * 3 + 1];
-      posAttr.setX(i, lerp(posAttr.getX(i), origX, 0.005));
-      posAttr.setY(i, lerp(posAttr.getY(i), origY, 0.005));
-    }
-    posAttr.needsUpdate = true;
-
-    // ================================================================
-    //  CONTACT: Ring — pulse intensifies on hover
-    // ================================================================
-    const contactFade = THREE.MathUtils.clamp((s4 - 0.2) * 3, 0, 1);
-    const ringDist = Math.hypot(smoothMouse.x - ring.position.x, smoothMouse.y - ring.position.y);
-    const ringHover = Math.max(0, 1 - ringDist / 2.5);
-    hoverState.ring = lerp(hoverState.ring, ringHover, 0.06);
-
-    ringMat.opacity = contactFade * (0.15 + hoverState.ring * 0.15) * ringMobileOpacityScale;
-    const ringPulseSpeed = 0.8 + hoverState.ring * 3;
-    const ringScale = (1 + Math.sin(t * ringPulseSpeed) * 0.15) * (1 + hoverState.ring * 0.2);
-    ring.scale.setScalar(ringScale);
-    ring.rotation.x = Math.PI * 0.5 + Math.sin(t * 0.3) * 0.2;
-    ring.rotation.z = t * (0.1 + hoverState.ring * 0.3);
-
-    // ================================================================
-    //  CURSOR — change on hover
-    // ================================================================
-    const isOverObject = hoverState.ring > 0.1;
-    canvas.style.cursor = isOverObject ? 'grab' : 'default';
-
-    // ================================================================
-    //  BLOOM — intensify on hover
-    // ================================================================
-    bloom.strength = lerp(bloom.strength, 0.6 + hoverState.ring * 0.5, 0.05);
-
-    // ---- Render ----
-    composer.render();
-  }
-
-  animate();
+  // beta: -180 to 180 (front/back tilt), gamma: -90 to 90 (left/right tilt)
+  // Clamp and normalize to -1..1 range
+  deviceOrientation.beta = Math.max(-30, Math.min(30, event.beta)) / 30;
+  deviceOrientation.gamma = Math.max(-30, Math.min(30, event.gamma)) / 30;
+  deviceOrientation.alpha = event.alpha ? event.alpha / 360 : 0;
+  hasDeviceOrientation = true;
+  window.hasDeviceOrientation = true; // Update global
 }
 
-// Warm the scene well before Clients scrolls into view so there's no
-// pop-in, but not a moment sooner than that.
-if (sectionEls[3] && 'IntersectionObserver' in window) {
-  const scene3DObserver = new IntersectionObserver((entries) => {
-    if (entries.some(en => en.isIntersecting)) {
-      scene3DObserver.disconnect();
-      initScene3D();
-    }
-  }, { rootMargin: '800px 0px 800px 0px' });
-  scene3DObserver.observe(sectionEls[3]);
-} else {
-  initScene3D();
+// Request permission on iOS 13+
+if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+  // We'll request permission on first touch/click
+  document.addEventListener('touchstart', () => {
+    DeviceOrientationEvent.requestPermission().catch(() => {});
+  }, { once: true, passive: true });
 }
+
+window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
+
 
 //   SCROLL REVEAL (IntersectionObserver + stagger)
 // ============================================================
@@ -2457,42 +2228,9 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 
 let journeyLockedWidth = window.innerWidth;
 function lockJourneyViewportHeight() {
-  // On a mobile browser, the address bar/toolbar is chrome painted OVER
-  // the same physical screen, not a smaller window — so as it collapses
-  // mid-scroll, innerHeight only ever grows TOWARD window.screen.height,
-  // never past it. Locking to that theoretical max up front (instead of
-  // whatever innerHeight happens to be at this exact moment) means
-  // .journey-video/.journey-stack (sized off this variable) are always
-  // at least as tall as any dvh state the page will ever actually reach
-  // — so there's nothing left to catch up later: no re-lock, no jump,
-  // and no gap, since .journey-inner's overflow:hidden just clips
-  // whatever of that fixed, oversized canvas the current chrome state
-  // doesn't leave room for.
-  // Restricted to viewports spanning the full screen width, which is
-  // true of essentially every mobile browser and only coincidentally
-  // true of a desktop window — there, screen.height is the monitor's
-  // full height with no relation to the browser chrome, and the
-  // ordinary innerHeight lock (desktop chrome doesn't animate) is right.
-  const isFullBleed = window.innerWidth === window.screen.width;
-  const h = (isFullBleed && window.screen.height > window.innerHeight)
-    ? window.screen.height
-    : window.innerHeight;
-  document.documentElement.style.setProperty('--journey-vh', (h * 0.01) + 'px');
+  document.documentElement.style.setProperty('--journey-vh', (window.innerHeight * 0.01) + 'px');
 }
 lockJourneyViewportHeight();
-
-// The lock is deliberately NEVER updated on a height-only resize (the
-// mobile URL bar collapsing/expanding as the user scrolls) — only on an
-// actual width change (rotation or window resize). An earlier version
-// of this tried to "catch up" the lock to the new height once the bar
-// finished animating, but that correction was itself a visible jump:
-// .journey-video/.journey-stack are sized off this variable (see their
-// CSS), so re-locking to a new value snaps their size instantly, which
-// reads as the exact same zoom/jolt this is meant to prevent — just
-// delayed by the debounce instead of eliminated. Any extra height the
-// still-live 100dvh .journey-inner reveals below them for the rest of
-// the session just shows its own background, which is far less
-// noticeable than a snap.
 window.addEventListener('resize', () => {
   // Height-only changes on mobile are the URL bar — ignore them.
   if (window.innerWidth === journeyLockedWidth) return;
@@ -2780,7 +2518,8 @@ function loadJourneyFrame(i, priority, onSettled) {
     onJourneyFrameLoaded();
     if (onSettled) onSettled();
   };
-  img.src = 'assets/frames/f' + String(i + 1).padStart(4, '0') + '.webp';
+  // Phones get the 960px set (decoded at 960 anyway) — ~45% fewer bytes.
+  img.src = (JOURNEY_BITMAP_WIDTH <= 960 ? 'assets/frames-m/f' : 'assets/frames/f') + String(i + 1).padStart(4, '0') + '.webp';
   journeyFrames[i] = img;
 }
 
@@ -2837,31 +2576,6 @@ const journeyIsTouch = window.matchMedia('(hover: none), (pointer: coarse)').mat
   || ('ontouchstart' in window)
   || navigator.maxTouchPoints > 0;
 
-// ---- Touch-only smoothing loop ----
-// On a trackpad/mouse, the browser fires scroll events at a steady,
-// fine-grained rate, so updating the canvas directly from each one (see
-// the direct call below) tracks the input with no added lag. On a
-// phone, momentum scrolling delivers scroll events in irregular bursts
-// (several pixels' worth at once, then a gap) — driving the canvas
-// straight from those bursts made the footage visibly step/tremble
-// instead of gliding. Fix: on touch devices only, keep the raw target
-// but walk toward it a little every animation frame, so the visual
-// keeps moving smoothly in between the bursts rather than jumping with
-// them. Desktop keeps the original zero-lag direct update.
-let journeySmoothRaf = null;
-function journeySmoothTick() {
-  const diff = journeyTargetProgress - journeySmoothProgress;
-  if (Math.abs(diff) < 0.0004) {
-    journeySmoothProgress = journeyTargetProgress;
-    updateJourneyVisual(journeySmoothProgress);
-    journeySmoothRaf = null;
-    return;
-  }
-  journeySmoothProgress += diff * 0.3;
-  updateJourneyVisual(journeySmoothProgress);
-  journeySmoothRaf = requestAnimationFrame(journeySmoothTick);
-}
-
 journeyScrollTriggerInst = ScrollTrigger.create({
   trigger: '#journeySection',
   start: 'top top',
@@ -2871,31 +2585,26 @@ journeyScrollTriggerInst = ScrollTrigger.create({
   onUpdate(self) {
     journeyTargetProgress = self.progress;
 
-    if (journeyIsTouch) {
-      if (!journeySmoothRaf) journeySmoothRaf = requestAnimationFrame(journeySmoothTick);
-    } else {
-      // Ignore sub-pixel-scale scroll noise (rubber-band scrolling keeps
-      // firing tiny scroll events even after the page visually "stops").
-      // Set so that anything below roughly a third of a source frame's
-      // worth of movement is dropped — well under what's perceptible,
-      // but enough to stop the settling jitter from driving constant
-      // redraws.
-      // The trembling this originally guarded against turned out to be
-      // caused by redundant DOM writes (now cached per panel), not by
-      // the scroll events themselves. With that fixed, this floor can
-      // be much lower — passing finer scroll deltas through to the
-      // canvas for smoother scrubbing — while still dropping true
-      // sub-pixel noise.
-      const JOURNEY_NOISE_FLOOR = 0.00008;
-      if (Math.abs(self.progress - journeySmoothProgress) >= JOURNEY_NOISE_FLOOR) {
-        // Update the visual directly here, in the same pass ScrollTrigger
-        // uses to process the scroll — no separate ticker/lerp step in
-        // between, which was adding a frame (or more) of perceived lag
-        // between the user's scroll input and the page responding to it.
-        journeySmoothProgress = self.progress;
-        updateJourneyVisual(self.progress);
-      }
-    }
+    // Ignore sub-pixel-scale scroll noise (mobile momentum/rubber-band
+    // scrolling keeps firing tiny scroll events even after the page
+    // visually "stops"). Set so that anything below roughly a third of
+    // a source frame's worth of movement is dropped — well under what's
+    // perceptible, but enough to stop the settling jitter from driving
+    // constant redraws.
+    // The trembling this originally guarded against turned out to be
+    // caused by redundant DOM writes (now cached per panel), not by the
+    // scroll events themselves. With that fixed, this floor can be much
+    // lower — passing finer scroll deltas through to the canvas for
+    // smoother scrubbing — while still dropping true sub-pixel noise.
+    const JOURNEY_NOISE_FLOOR = 0.00008;
+    if (Math.abs(self.progress - journeySmoothProgress) < JOURNEY_NOISE_FLOOR) return;
+    journeySmoothProgress = self.progress;
+
+    // Update the visual directly here, in the same pass ScrollTrigger
+    // uses to process the scroll — no separate ticker/lerp step in
+    // between, which was adding a frame (or more) of perceived lag
+    // between the user's scroll input and the page responding to it.
+    updateJourneyVisual(self.progress);
 
     // ---- Auto-play trigger: based on the RAW scroll progress (not a
     // smoothed value, which can sweep through earlier chapters while
@@ -3119,25 +2828,43 @@ function updateJourneyVisual(p) {
 // blank until the user scrolls even a pixel.
 updateJourneyVisual(0);
 
-// ---- d) Clients — carousel fades in as a whole ----
-// Individual per-card scroll-triggered reveals don't make sense once
-// the cards are continuously auto-scrolling (see .clients-carousel /
-// .clients-track CSS) — a card sliding in from off-screen would fight
-// with the marquee motion instead of matching it. A single fade-in for
-// the whole track when it enters view keeps that visual polish.
-gsap.fromTo('#clientsCarousel',
-  { opacity: 0 },
-  {
-    opacity: 1,
-    ease: 'power2.out',
-    scrollTrigger: {
-      trigger: '#clientsCarousel',
-      start: 'top 92%',
-      end: 'top 65%',
-      scrub: 0.8,
-    }
+// ---- d) Clients — Staggered Sequence Scrub ----
+(function clientsCarousel() {
+  const track = document.getElementById('clientsTrack');
+  if (!track) return;
+  const originals = [...track.children];
+  originals.forEach(c => { const k = c.cloneNode(true); k.setAttribute('aria-hidden', 'true'); k.tabIndex = -1; track.appendChild(k); });
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const gap = () => parseFloat(getComputedStyle(track).columnGap) || 24;
+  const loopWidth = () => originals.length * (originals[0].offsetWidth + gap());
+  let paused = false, visible = false, last = 0, pos = 0, resumeT;
+  const SPEED = 40; // px per second
+  const pause = () => { paused = true; clearTimeout(resumeT); };
+  const resume = (ms = 1500) => { clearTimeout(resumeT); resumeT = setTimeout(() => { paused = false; pos = track.scrollLeft; }, ms); };
+  track.addEventListener('mouseenter', pause);
+  track.addEventListener('mouseleave', () => resume(300));
+  track.addEventListener('focusin', pause);
+  track.addEventListener('focusout', () => resume(300));
+  track.addEventListener('touchstart', pause, { passive: true });
+  track.addEventListener('touchend', () => resume(2500), { passive: true });
+  track.addEventListener('wheel', () => { pause(); resume(2500); }, { passive: true });
+  const step = dir => { pause(); track.scrollBy({ left: dir * (originals[0].offsetWidth + gap()), behavior: 'smooth' }); resume(3000); };
+  document.getElementById('clientsPrev').addEventListener('click', () => step(-1));
+  document.getElementById('clientsNext').addEventListener('click', () => step(1));
+  new IntersectionObserver(es => { visible = es[0].isIntersecting; last = 0; }, { threshold: 0.1 }).observe(track);
+  function wrap() { const w = loopWidth(); if (track.scrollLeft >= w) { track.scrollLeft -= w; pos = track.scrollLeft; } else if (track.scrollLeft <= 0) { track.scrollLeft += w; pos = track.scrollLeft; } }
+  track.addEventListener('scroll', () => { if (paused) wrap(); });
+  track.scrollLeft = 1;
+  function tick(t) {
+    if (!reduce && visible && !paused && !document.hidden) {
+      if (last) { pos += SPEED * (t - last) / 1000; track.scrollLeft = pos; wrap(); pos = track.scrollLeft; }
+      last = t;
+    } else last = 0;
+    requestAnimationFrame(tick);
   }
-);
+  pos = track.scrollLeft;
+  requestAnimationFrame(tick);
+})();
 
 // ---- d2) Recommendations — Staggered Sequence Scrub ----
 const recoCards = document.querySelectorAll('.reco-card');
@@ -3208,12 +2935,34 @@ statEls.forEach(el => {
   });
 });
 
+
+// ============================================================
+//   LAZY 3D SCENE — only fetch Three.js (~700KB) when the sections
+//   that use it (Clients / Contact) are about to come into view.
+//   If it fails to load, the rest of the site is unaffected.
+// ============================================================
+(function lazyScene3d() {
+  const targets = ['clients', 'contact'].map(id => document.getElementById(id)).filter(Boolean);
+  if (!targets.length) return;
+  let started = false;
+  const start = () => {
+    if (started) return;
+    started = true;
+    io.disconnect();
+    import('./js/scene3d.js').catch(err => console.warn('3D scene unavailable:', err));
+  };
+  const io = new IntersectionObserver((entries) => {
+    if (entries.some(e => e.isIntersecting)) start();
+  }, { rootMargin: '150% 0px' });
+  targets.forEach(t => io.observe(t));
+})();
 </script>
 
 <script>
   /* ===== Contact form ===== */
   const contactForm = document.getElementById('contactForm');
   const formSuccess = document.getElementById('formSuccess');
+  const formError = document.getElementById('formError');
 
   if (contactForm) {
     contactForm.addEventListener('submit', async (e) => {
@@ -3223,6 +2972,7 @@ statEls.forEach(el => {
       const submitBtn = contactForm.querySelector('.btn-submit');
       const originalBtnText = submitBtn.innerHTML;
 
+      formError.classList.remove('show');
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span>Sending…</span>';
 
@@ -3241,16 +2991,17 @@ statEls.forEach(el => {
           throw new Error('Form submission failed');
         }
       } catch (err) {
-        // Fallback to mailto if Formspree fails
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
+        // Don't navigate away silently — tell the visitor and offer a one-tap fallback.
         const subject = document.getElementById('subject').value.trim();
         const message = document.getElementById('message').value.trim();
-        const body = `Hi Guilherme,\n\n${message}\n\n— ${name}\n${email}`;
+        const name = document.getElementById('name').value.trim();
+        const body = `Hi Guilherme,\n\n${message}\n\n— ${name}`;
         const mailto = `mailto:guilhermemarques.mktdigital@gmail.com`
-          + `?subject=${encodeURIComponent(subject || 'Contact from portfolio site')}`
+          + `?subject=${encodeURIComponent(subject || 'Contact from gillydigital.com')}`
           + `&body=${encodeURIComponent(body)}`;
-        window.location.href = mailto;
+        formError.innerHTML = 'Something went wrong and your message wasn\u2019t sent. '
+          + '<a href="' + mailto + '">Email me directly</a> or call (470) 557-7266.';
+        formError.classList.add('show');
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalBtnText;
@@ -3259,5 +3010,106 @@ statEls.forEach(el => {
   }
 </script>
 
+<script>
+  /* ===== About — layered depth parallax =====
+     guilherme.png (frente) e Background.jpeg (fundo) se movem
+     em velocidades diferentes conforme o mouse → ilusão de
+     profundidade. Em touch (sem cursor) ficam estáticos.
+     No mobile: usa deviceorientation (gyroscope) para efeito parallax. */
+  (function () {
+    const wrapper = document.getElementById('depthWrapper');
+    const bg = wrapper && wrapper.querySelector('.depth-bg');
+    const fg = wrapper && wrapper.querySelector('.depth-fg');
+    if (!wrapper || !bg || !fg) return;
+
+    const fine = window.matchMedia('(pointer:fine)').matches;
+    let tx = 0, ty = 0;       // alvo (mouse/orientação)
+    let cx = 0, cy = 0;       // atual (ease)
+    let hovering = false;
+    let raf = null;
+    const isMobile = window.innerWidth <= 768;
+
+    function apply() {
+      bg.style.transform = 'translate3d(' + cx * 0.35 + 'px,' + cy * 0.35 + 'px,0)';
+      fg.style.transform = 'translate3d(' + cx + 'px,' + cy + 'px,0)';
+    }
+    function tick() {
+      cx += (tx - cx) * 0.08;
+      cy += (ty - cy) * 0.08;
+      apply();
+      if (Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        raf = null;
+      }
+    }
+    function aim() { if (!raf) raf = requestAnimationFrame(tick); }
+
+    if (fine) {
+      wrapper.addEventListener('mousemove', (e) => {
+        hovering = true;
+        const r = wrapper.getBoundingClientRect();
+        const nx = ((e.clientX - r.left) / r.width) * 2 - 1;
+        const ny = ((e.clientY - r.top) / r.height) * 2 - 1;
+        tx = nx * 14;   // frente anda mais
+        ty = ny * 16;
+        aim();
+      });
+      wrapper.addEventListener('mouseleave', () => {
+        hovering = false;
+        tx = 0; ty = 0;
+        aim();
+      });
+    }
+
+    // Device orientation (gyroscope) for mobile
+    if (isMobile && window.DeviceOrientationEvent) {
+      // Use global deviceOrientation from Three.js module if available, or create local listener
+      const useGlobalOrientation = window.deviceOrientation && window.hasDeviceOrientation;
+
+      function updateFromOrientation() {
+        if (useGlobalOrientation) {
+          // Use shared data from Three.js module
+          const gamma = window.deviceOrientation.gamma || 0; // left/right
+          const beta = window.deviceOrientation.beta || 0;   // front/back
+          tx = gamma * 8;   // Adjust multiplier for desired effect
+          ty = -beta * 6;
+        }
+      }
+
+      // If global orientation data exists, use it
+      if (useGlobalOrientation) {
+        function orientationTick() {
+          updateFromOrientation();
+          aim();
+          requestAnimationFrame(orientationTick);
+        }
+        orientationTick();
+      } else {
+        // Fallback: local listener
+        window.addEventListener('deviceorientation', (e) => {
+          if (!e.gamma && !e.beta) return;
+          const gamma = Math.max(-30, Math.min(30, e.gamma)) / 30; // -1 to 1
+          const beta = Math.max(-30, Math.min(30, e.beta)) / 30;
+          tx = gamma * 10;
+          ty = -beta * 8;
+          aim();
+        }, { passive: true });
+      }
+    }
+
+    // Órbita lenta e contínua — a profundidade se lê mesmo sem o mouse.
+    let t = 0;
+    (function orbit() {
+      t += 1;
+      if (fine && !hovering && !isMobile) {
+        tx = Math.sin(t * 0.004) * 5;
+        ty = Math.cos(t * 0.003) * 6;
+        aim();
+      }
+      requestAnimationFrame(orbit);
+    })();
+  })();
+</script>
 </body>
 </html>

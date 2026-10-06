@@ -20,6 +20,7 @@
 
 ## Key Pages
 - **Home/Portfolio:** https://gillydigital.com/ — Main landing page with services, clients, and contact
+- **Português (pt-BR):** https://gillydigital.com/pt.html
 - **Social Media Management Atlanta:** https://gillydigital.com/social-media-management-atlanta.html
 - **Graphic Design Atlanta:** https://gillydigital.com/graphic-design-atlanta.html
 - **Web Design Atlanta:** https://gillydigital.com/web-design-atlanta.html
