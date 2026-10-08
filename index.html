@@ -710,7 +710,7 @@ section{
      making the frame snap back and forth. Locking the value kills that
      feedback loop. Falls back to vh where the variable isn't set. */
   height:700vh;
-  height:calc(var(--journey-vh, 1vh) * 700);
+  height:calc(var(--journey-vh, 1vh) * 700 + var(--journey-extra, 0px));
   min-height:0;
   display:block;
   padding:0;
@@ -728,7 +728,7 @@ section{
 .journey-inner{
   position:sticky;top:0;
   height:100vh;
-  height:calc(var(--journey-vh, 1vh) * 100);
+  height:var(--journey-stage, calc(var(--journey-vh, 1vh) * 100));
   overflow:hidden;
   background:var(--bg);
 }
@@ -2300,9 +2300,24 @@ function lockJourneyViewportHeight() {
   } catch (e) {}
   const root = document.documentElement.style;
   root.setProperty('--journey-vh', (large * 0.01) + 'px');
-  // Strip hidden under the toolbar at load — lets mobile text stay
-  // visually centred in what the visitor actually sees.
-  root.setProperty('--journey-bar', Math.max(0, large - window.innerHeight) + 'px');
+  // Some mobile browsers (Edge on iOS) don't report a "large viewport":
+  // their toolbar is native chrome that resizes the whole web view, so
+  // when it collapses the visible area GROWS past the height we measured
+  // at load — and a stage sized to the load-time height leaves a black
+  // band along the bottom. On phones/tablets make the stage taller than
+  // the current view (capped at the physical screen); the surplus simply
+  // sits under the toolbar. The section gets the same extra height so the
+  // sticky stage still releases exactly at the end of the scroll range.
+  let stage = large;
+  if (window.matchMedia('(pointer: coarse)').matches && window.innerWidth <= 1024) {
+    stage = Math.max(large, Math.min(window.screen.height || large, window.innerHeight + 120));
+  }
+  const extra = Math.max(0, stage - large);
+  root.setProperty('--journey-stage', stage + 'px');
+  root.setProperty('--journey-extra', extra + 'px');
+  // Strip hidden under the toolbar — keeps mobile text visually centred in
+  // what the visitor actually sees.
+  root.setProperty('--journey-bar', Math.max(0, stage - window.innerHeight) + 'px');
 }
 lockJourneyViewportHeight();
 window.addEventListener('resize', () => {
@@ -2653,6 +2668,73 @@ const journeyIsTouch = window.matchMedia('(hover: none), (pointer: coarse)').mat
   || ('ontouchstart' in window)
   || navigator.maxTouchPoints > 0;
 
+// ---- Phones/tablets: time-driven chapters ----
+// On a touchscreen the footage no longer follows the finger. The scroll
+// position (snapped to one stop per chapter) only decides WHICH chapter
+// is the target; the scene then plays there on its own clock with an
+// eased, fixed-length tween. Finger tremor, iOS momentum and the browser
+// toolbar sliding in and out therefore can't make frames jump, and the
+// scene is perfectly still while a chapter's text is on screen.
+const journeyTouchMode = window.matchMedia('(pointer: coarse)').matches
+  && window.matchMedia('(hover: none)').matches;
+const JT_STOPS = [0, 1.24, 2.24, 3.24, 4.24, 5.24, 6.3]; // chapterFloat of each stop
+let jtInit = false, jtTarget = 0, jtTween = null;
+const jtState = { t: journeyCheckpoints[0] };
+function jtSetPanels(activeIdx) {
+  journeyPanels.forEach((panel, i) => {
+    const on = i === activeIdx;
+    if (panel._jtOn === on) return;
+    panel._jtOn = on;
+    panel.style.opacity = on ? 1 : 0;
+    panel.style.visibility = on ? 'visible' : 'hidden';
+    panel.style.transform = on ? 'translate3d(0,0,0)' : 'translate3d(0,14px,0)';
+  });
+}
+function jtSetChapterUi(idx) {
+  journeyDots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  if (idx >= 1 && !journeyStatsPlayed) playJourneyStats();
+}
+function jtGoTo(idx, instant) {
+  if (jtTween) { jtTween.kill(); jtTween = null; }
+  jtTarget = idx;
+  const to = journeyCheckpoints[idx];
+  if (instant || Math.abs(to - jtState.t) < 0.001) {
+    jtState.t = to;
+    drawJourneyAtPosition(framePositionForTime(to));
+    jtSetPanels(idx); jtSetChapterUi(idx);
+    return;
+  }
+  jtSetPanels(-1);               // text out while the scene is moving
+  jtSetChapterUi(idx);
+  const gap = Math.abs(to - jtState.t);
+  jtTween = gsap.to(jtState, {
+    t: to,
+    duration: Math.min(2.0, Math.max(0.9, 0.7 + gap * 0.2)),
+    ease: 'power2.inOut',
+    onUpdate: () => drawJourneyAtPosition(framePositionForTime(jtState.t)),
+    onComplete: () => { jtTween = null; jtSetPanels(idx); }
+  });
+}
+function touchJourneyUpdate(progress) {
+  const cf = progress * JOURNEY_SPAN;
+  if (!jtInit) {
+    jtInit = true;
+    let best = 0;
+    JT_STOPS.forEach((a, i) => { if (Math.abs(cf - a) < Math.abs(cf - JT_STOPS[best])) best = i; });
+    jtGoTo(best, true);
+    return;
+  }
+  // Switch target at the midpoint between stops, with a small dead-band so
+  // a trembling finger sitting exactly on the midpoint can't flip it.
+  const cur = JT_STOPS[jtTarget];
+  const nextI = Math.min(jtTarget + 1, JT_STOPS.length - 1);
+  const prevI = Math.max(jtTarget - 1, 0);
+  const upMid = (cur + JT_STOPS[nextI]) / 2 + 0.04;
+  const dnMid = (cur + JT_STOPS[prevI]) / 2 - 0.04;
+  if (nextI !== jtTarget && cf > upMid) jtGoTo(nextI);
+  else if (prevI !== jtTarget && cf < dnMid) jtGoTo(prevI);
+}
+
 journeyScrollTriggerInst = ScrollTrigger.create({
   trigger: '#journeySection',
   start: 'top top',
@@ -2661,6 +2743,7 @@ journeyScrollTriggerInst = ScrollTrigger.create({
   invalidateOnRefresh: true,
   onUpdate(self) {
     journeyTargetProgress = self.progress;
+    if (journeyTouchMode) { touchJourneyUpdate(self.progress); return; }
 
     // Ignore sub-pixel-scale scroll noise (mobile momentum/rubber-band
     // scrolling keeps firing tiny scroll events even after the page
@@ -2727,7 +2810,7 @@ function setJourneySnap(on) {
   journeySnapOn = on;
   document.documentElement.style.scrollSnapType = on ? 'y mandatory' : '';
 }
-if (journeyIsTouch) {
+if (journeyTouchMode) {
   const jSec = document.getElementById('journeySection');
   const snapPts = [0, 1.24 / JOURNEY_SPAN, 2.24 / JOURNEY_SPAN, 3.24 / JOURNEY_SPAN, 4.24 / JOURNEY_SPAN, 5.24 / JOURNEY_SPAN, 1]; // last stop = end of the journey, where the final chapter's text is up
   const snapEls = snapPts.map(() => {
