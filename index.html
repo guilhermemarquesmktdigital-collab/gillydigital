@@ -846,6 +846,19 @@ section{
     padding:16px 20px;
   }
   .about-right{ max-width:100%; margin-left:0; }
+  /* The About panel was ~650px tall on phones (stats stacked in a column)
+     and its bottom — "4 core services", "100% commitment" — ended up
+     under the browser toolbar. Lay the stats out in one row and tighten
+     the spacing so the whole card fits above the toolbar. */
+  .journey-panel .about-text h2{ font-size:clamp(28px,8vw,34px); margin-top:8px; }
+  .about-left{ padding:12px 18px; }
+  .journey-panel .about-text p{ font-size:13.5px; line-height:1.55; }
+  .journey-panel .about-text .stats{
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:8px; margin-top:14px; padding-top:12px;
+  }
+  .journey-panel .about-text .stat-num{ font-size:24px; }
+  .journey-panel .about-text .stat-label{ font-size:9px; letter-spacing:.04em; line-height:1.25; }
 }
 
 .journey-panel.pin-panel h3{
