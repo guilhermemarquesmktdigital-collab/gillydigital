@@ -716,6 +716,11 @@ section{
   padding:0;
   position:relative;
 }
+.journey-snap{
+  position:absolute;left:0;width:1px;height:1px;
+  scroll-snap-align:start;scroll-snap-stop:always;
+  pointer-events:none;visibility:hidden;
+}
 .journey-anchor{
   position:absolute;left:0;width:1px;height:1px;
   pointer-events:none;
@@ -1678,8 +1683,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
          actual scroll depth within the tall pinned section (not inside
          the sticky stack, where every panel shares the same offset). -->
     <div id="hero" class="journey-anchor" style="top:0;"></div>
-    <div id="about" class="journey-anchor" style="top:14.28%;"></div>
-    <div id="services" class="journey-anchor" style="top:28.57%;"></div>
+    <div id="about" class="journey-anchor" style="top:16.9%;"></div>
+    <div id="services" class="journey-anchor" style="top:30.5%;"></div>
     <div class="journey-inner">
       <canvas class="journey-video" id="journeyCanvas" aria-hidden="true"></canvas>
       <div class="journey-loading" id="journeyLoading"><span id="journeyLoadingPct">Loading 0%</span></div>
@@ -2391,6 +2396,9 @@ const journeyFrames = new Array(JOURNEY_FRAME_COUNT);
 // the clip. Scrubbing motion only happens in the last stretch of each
 // chapter's scroll range, smoothly bridging into the NEXT checkpoint.
 const journeyCheckpoints = [2, 3, 6, 11, 16, 22, 23.8];
+// Scroll progress 0..1 spans 6.3 "chapter lengths" (not 7): the last chapter only needs
+// its text point plus a little, so the final swipe is the same size as every other one.
+const JOURNEY_SPAN = 6.3;
 const journeyHoldFraction = 0.68; // scene stays still through the pause; only moves in the last stretch
 
 function frameIndexForTime(sec) {
@@ -2683,7 +2691,7 @@ journeyScrollTriggerInst = ScrollTrigger.create({
     // to an automatic, eased animation. ----
     if (journeyAutoPlaying) return;
     const numChapters = journeyCheckpoints.length;
-    const chapterFloat = self.progress * numChapters;
+    const chapterFloat = self.progress * JOURNEY_SPAN;
     const chapter = Math.min(numChapters - 1, Math.floor(chapterFloat));
     const localT = Math.min(1, Math.max(0, chapterFloat - chapter));
     if (chapter === journeyLastChapter && journeyLastLocalT < 0.50 && localT >= 0.50) {
@@ -2706,6 +2714,50 @@ function cancelJourneyAutoPlay() {
 }
 window.cancelJourneyAutoPlay = cancelJourneyAutoPlay;
 
+// ---- Touch devices: one swipe = one chapter ----
+// Native CSS scroll-snap (handled by the browser's compositor, so there is
+// no JS fighting the finger / iOS momentum). Snap stops sit at the middle
+// of every chapter's text — where the scene is frozen — plus the section's
+// start and end so the page can still be entered and left. `stop: always`
+// means a hard flick cannot skip a chapter. Snapping is only switched on
+// while the journey fills the screen, so the rest of the page scrolls
+// normally. Desktop keeps the free scrub.
+let journeySnapOn = false;
+function setJourneySnap(on) {
+  journeySnapOn = on;
+  document.documentElement.style.scrollSnapType = on ? 'y mandatory' : '';
+}
+if (journeyIsTouch) {
+  const jSec = document.getElementById('journeySection');
+  const snapPts = [0, 1.24 / JOURNEY_SPAN, 2.24 / JOURNEY_SPAN, 3.24 / JOURNEY_SPAN, 4.24 / JOURNEY_SPAN, 5.24 / JOURNEY_SPAN, 1]; // last stop = end of the journey, where the final chapter's text is up
+  const snapEls = snapPts.map(() => {
+    const a = document.createElement('div');
+    a.className = 'journey-snap';
+    a.setAttribute('aria-hidden', 'true');
+    jSec.appendChild(a);
+    return a;
+  });
+  const placeSnaps = () => {
+    const st = journeyScrollTriggerInst;
+    const secTop = jSec.getBoundingClientRect().top + window.scrollY;
+    snapPts.forEach((p, i) => {
+      snapEls[i].style.top = Math.round(st.start + p * (st.end - st.start) - secTop) + 'px';
+    });
+  };
+  placeSnaps();
+  ScrollTrigger.addEventListener('refresh', placeSnaps);
+  // The journey is the first thing on the page, so snapping is on from the
+  // very top until the section ends, and off for everything after it.
+  setJourneySnap(window.scrollY <= journeyScrollTriggerInst.end + 2);
+  ScrollTrigger.create({
+    trigger: '#journeySection',
+    start: 'top top',
+    end: 'bottom bottom',
+    onLeave: () => setJourneySnap(false),
+    onEnterBack: () => setJourneySnap(true)
+  });
+}
+
 // ---- Nav link clicks — explicit, GSAP-driven scroll instead of the
 // browser's native anchor jump / scroll-behavior:smooth. Native
 // smooth-scroll can crawl or stall when the target sits past this
@@ -2722,12 +2774,17 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
     journeyAutoPlaying = true; // suppress auto-advance triggers for the whole trip
     const y = target.getBoundingClientRect().top + window.scrollY;
     const proxy = { y: window.scrollY };
+    const snapWasOn = journeySnapOn;
+    if (snapWasOn) document.documentElement.style.scrollSnapType = ''; // don't let snap fight the tween
     gsap.to(proxy, {
       y: y,
       duration: 1,
       ease: 'power2.inOut',
       onUpdate: () => { window.scrollTo({ top: proxy.y, left: 0, behavior: 'instant' }); },
-      onComplete: () => { journeyAutoPlaying = false; }
+      onComplete: () => {
+        journeyAutoPlaying = false;
+        if (snapWasOn && journeySnapOn) document.documentElement.style.scrollSnapType = 'y mandatory';
+      }
     });
     history.pushState(null, '', '#' + id);
   });
@@ -2757,7 +2814,7 @@ function autoAdvanceJourneyChapter(chapter) {
   const st = journeyScrollTriggerInst;
   const AUTOPLAY_TRIGGER_LOCAL_T = 0.50; // matches the raw-progress trigger threshold below
   const AUTOPLAY_LANDING_OFFSET = 1.14;  // chapter + this = where we land (past the text fade-in)
-  const targetProgress = (chapter + AUTOPLAY_LANDING_OFFSET) / numChapters;
+  const targetProgress = (chapter + AUTOPLAY_LANDING_OFFSET) / JOURNEY_SPAN;
   const targetY = st.start + targetProgress * (st.end - st.start);
   const proxy = { y: window.scrollY };
 
@@ -2816,7 +2873,7 @@ function playJourneyStats() {
 
 function updateJourneyVisual(p) {
   const numChapters = journeyCheckpoints.length;
-  const chapterFloat = p * numChapters;
+  const chapterFloat = p * JOURNEY_SPAN;
   const chapter = Math.min(numChapters - 1, Math.floor(chapterFloat));
   const localT = Math.min(1, Math.max(0, chapterFloat - chapter));
 
@@ -2865,6 +2922,7 @@ function updateJourneyVisual(p) {
     let op = 0;
     if (i === 0 && t >= 0 && t < 0.40) op = 1;
     else if (t >= 0 && t < 0.08) op = easeInOut(t / 0.08);
+    else if (i === journeyPanels.length - 1 && t >= 0.08) op = 1; // last chapter stays up until the section ends
     else if (t >= 0.08 && t < 0.40) op = 1;
     else if (t >= 0.40 && t < 0.50) op = easeInOut(1 - (t - 0.40) / 0.10);
     else op = 0;
