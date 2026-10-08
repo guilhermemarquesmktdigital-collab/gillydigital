@@ -12,19 +12,42 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 
 const canvas = document.getElementById('scene3d');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+// Stable canvas size. On mobile the browser toolbar slides in/out while
+// scrolling and fires a stream of resize events (innerHeight changes by
+// ~80px). Re-allocating the renderer + bloom render targets on each one
+// stalled the main thread and made scrolling stutter whenever the 3D
+// scene was active. We size once against the LARGE viewport (toolbars
+// collapsed) and only resize when the width really changes (rotation /
+// desktop window resize).
+const isCoarse = window.matchMedia('(pointer: coarse)').matches;
+function largeViewportHeight() {
+  let h = window.innerHeight;
+  try {
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:100lvh;visibility:hidden;pointer-events:none;';
+    document.body.appendChild(probe);
+    const ph = probe.offsetHeight;
+    document.body.removeChild(probe);
+    if (ph >= h) h = ph;
+  } catch (e) {}
+  return h;
+}
+let viewW = window.innerWidth;
+let viewH = isCoarse ? largeViewportHeight() : window.innerHeight;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, isCoarse ? 1.5 : 2));
+renderer.setSize(viewW, viewH, false); // CSS controls the displayed size
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.2;
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+const camera = new THREE.PerspectiveCamera(60, viewW / viewH, 0.1, 100);
 camera.position.set(0, 0, 5);
 
 // ---- Post-processing (bloom) ----
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.85);
+const bloom = new UnrealBloomPass(new THREE.Vector2(viewW, viewH), 0.6, 0.4, 0.85);
 composer.addPass(bloom);
 
 // ---- Colors ----
@@ -262,11 +285,19 @@ animate();
 // ============================================================
 //   RESIZE
 // ============================================================
+let resizeTimer = null;
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  composer.setSize(window.innerWidth, window.innerHeight);
+  // Height-only changes on touch devices are the browser toolbar — ignore.
+  if (isCoarse && window.innerWidth === viewW) return;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    viewW = window.innerWidth;
+    viewH = isCoarse ? largeViewportHeight() : window.innerHeight;
+    camera.aspect = viewW / viewH;
+    camera.updateProjectionMatrix();
+    renderer.setSize(viewW, viewH, false);
+    composer.setSize(viewW, viewH);
+  }, 150);
 });
 
 

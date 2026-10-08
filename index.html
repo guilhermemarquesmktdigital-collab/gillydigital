@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Digital Marketing Atlanta, GA | Social Media, Web Design &amp; Ads — Gilly Digital</title>
 <meta name="description" content="Atlanta-based digital marketing specialist. Social media management, web design, paid ads, graphic design &amp; drone video for brands across metro Atlanta and Georgia. Strategy + design that converts.">
 <meta name="theme-color" content="#0A0A0B">
@@ -281,6 +281,7 @@ body{
 #scene3d{
   position:fixed;top:0;left:0;
   width:100vw;height:100vh;
+  height:100lvh; /* static large viewport: never resizes with the mobile toolbar */
   z-index:0;
   pointer-events:none;
 }
@@ -2086,6 +2087,28 @@ if (/[?&]debug\b/.test(location.search)) {
   };
   window.addEventListener('error', e => showErr('red', '#fff', 'JS ERROR: ' + e.message + ' (line ' + e.lineno + ')'));
   window.addEventListener('unhandledrejection', e => showErr('orange', '#000', 'PROMISE ERROR: ' + e.reason));
+
+  // Live HUD for diagnosing mobile scroll/viewport issues on a real device:
+  // open the site with ?debug, scroll, and screenshot it.
+  const hud = document.createElement('div');
+  hud.style.cssText = 'position:fixed;bottom:70px;left:8px;z-index:99998;background:rgba(0,0,0,.78);color:#0f0;padding:6px 8px;font:11px/1.35 monospace;border-radius:6px;pointer-events:none;white-space:pre;';
+  document.body.appendChild(hud);
+  let resizes = 0, scrolls = 0, worst = 0, lastT = performance.now(), longs = 0;
+  window.addEventListener('resize', () => resizes++);
+  window.addEventListener('scroll', () => scrolls++, { passive: true });
+  (function loop(t) {
+    const dt = t - lastT; lastT = t;
+    if (dt > worst) worst = dt;
+    if (dt > 34) longs++;
+    requestAnimationFrame(loop);
+  })(performance.now());
+  setInterval(() => {
+    const vv = window.visualViewport;
+    hud.textContent = 'inner ' + innerWidth + 'x' + innerHeight + '  vv ' + (vv ? Math.round(vv.height) : '-') +
+      '\nresize ' + resizes + '  scroll ' + scrolls + '\nscrollY ' + Math.round(scrollY) +
+      '\nworst frame ' + Math.round(worst) + 'ms  slow(>34ms) ' + longs;
+    worst = 0;
+  }, 500);
 }
 
 // ============================================================
