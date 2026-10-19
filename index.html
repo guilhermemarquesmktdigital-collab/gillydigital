@@ -2445,10 +2445,15 @@ const JOURNEY_BITMAP_SUPPORTED = typeof createImageBitmap === 'function';
 // Target width for decoded bitmaps. Phones get a smaller one: the frame
 // is upscaled to cover a tall viewport anyway, so the extra source
 // pixels buy almost nothing visually but cost decode time and memory.
-const JOURNEY_BITMAP_WIDTH = window.innerWidth <= 900 ? 960 : 1600;
+// Desktop is capped at 1280: on a retina Mac the canvas is shown at
+// <=1440 CSS px, so 1600 source pixels only cost memory (each decoded
+// frame is ~5.8MB at 1600, ~3.7MB at 1280) without a visible gain.
+const JOURNEY_BITMAP_WIDTH = window.innerWidth <= 900 ? 960 : 1280;
 // Bounded cache. ~48 frames around the current position is far more
 // than scrolling ever needs at once, and caps memory at a safe level.
-const JOURNEY_BITMAP_BUDGET = 48;
+// The window prefetched around the current frame is +/-10, so 28 keeps
+// everything scrolling can reach while using ~40% less memory.
+const JOURNEY_BITMAP_BUDGET = 28;
 
 const journeyBitmaps = new Map();   // index -> ImageBitmap
 const journeyBitmapPending = new Set();

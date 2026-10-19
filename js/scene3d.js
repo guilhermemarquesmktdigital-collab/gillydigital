@@ -35,7 +35,7 @@ function largeViewportHeight() {
 }
 let viewW = window.innerWidth;
 let viewH = isCoarse ? largeViewportHeight() : window.innerHeight;
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, isCoarse ? 1.5 : 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // bloom buffers at 2x retina are the heaviest GPU allocation on the page
 renderer.setSize(viewW, viewH, false); // CSS controls the displayed size
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.2;
