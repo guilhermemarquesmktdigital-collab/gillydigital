@@ -216,6 +216,14 @@
     {
       "@type": "Review",
       "itemReviewed": { "@id": "https://gillydigital.com/#business" },
+      "name": "Finally, a Marketing Partner Who Truly Understands Branding!",
+      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+      "reviewBody": "After spending thousands of dollars working with different marketing agencies, I can confidently say that I finally found what I was looking for. He takes the time to understand your business, your vision, and the identity you want your brand to represent.",
+      "author": { "@type": "Person", "name": "Michelle Zinney" }
+    },
+    {
+      "@type": "Review",
+      "itemReviewed": { "@id": "https://gillydigital.com/#business" },
       "reviewBody": "Excellent professional. Very competent in the projects he was assigned to!",
       "author": { "@type": "Person", "name": "Renato Bonfiglioli Muoio" }
     },
@@ -1170,6 +1178,38 @@ a.client-card{display:block;color:inherit;text-decoration:none;}
 }
 .reco-card:hover .reco-linkedin{color:var(--gold);opacity:1;}
 
+/* Featured client review (full width, above the LinkedIn recommendations) */
+.reco-card.reco-featured{
+  grid-column:1/-1;
+  padding:44px 48px 34px;
+  border-color:rgba(245,197,24,.22);
+  background:linear-gradient(135deg,rgba(245,197,24,.06),var(--surface) 55%);
+}
+.reco-featured .reco-stars{
+  display:flex;gap:4px;color:var(--gold);
+  font-size:20px;letter-spacing:2px;line-height:1;
+}
+.reco-featured .reco-headline{
+  font-family:var(--font-display);
+  font-size:clamp(22px,2.6vw,30px);font-weight:700;
+  letter-spacing:-.02em;line-height:1.2;
+  margin-top:16px;
+}
+.reco-featured .reco-quote{
+  font-size:15.5px;
+  padding-top:0;margin-top:18px;
+  max-width:920px;
+}
+.reco-featured .reco-quote::before{display:none;}
+.reco-featured .reco-quote p+p{margin-top:14px;}
+@media (min-width:900px){
+  .reco-featured .reco-quote{column-count:2;column-gap:56px;max-width:none;}
+  .reco-featured .reco-quote p{break-inside:avoid;}
+}
+@media (max-width:640px){
+  .reco-card.reco-featured{padding:30px 22px 24px;}
+}
+
 /* ---- Contact ---- */
 .contact-grid{
   display:grid;
@@ -1940,6 +1980,28 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
       <div class="section-label gsap-fade">Recommendations</div>
       <h2 class="gsap-fade" style="font-family:var(--font-display);font-size:clamp(32px,4vw,48px);font-weight:700;letter-spacing:-.02em;">What people <span style="color:var(--gold);">say</span> about working with me</h2>
       <div class="reco-grid">
+
+        <div class="reco-card reco-featured">
+          <div class="reco-stars" role="img" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <h3 class="reco-headline">Finally, a Marketing Partner Who Truly Understands Branding!</h3>
+          <div class="reco-quote">
+            <p>After spending thousands of dollars working with different marketing agencies, I can confidently say that I finally found what I was looking for with Guillermo.</p>
+            <p>What sets Guillermo apart is that he doesn't simply build websites or manage social media. He takes the time to understand your business, your vision, and the identity you want your brand to represent.</p>
+            <p>He works closely with you, listens to your ideas, respects your direction, and helps bring everything together into one cohesive brand. From website design, color palettes, and visual identity to communication, messaging, newsletters, and social media, he understands that every detail needs to tell the same story.</p>
+            <p>As a business owner in the medical aesthetics industry, I know how important it is to communicate professionalism, credibility, and authenticity. I didn't want another generic marketing agency creating content that looked like everyone else's. I wanted someone who understood that building a brand is about much more than having a beautiful website. It's about creating an identity that reflects who you are and what makes your business different.</p>
+            <p>Guillermo has been patient, collaborative, attentive to detail, and genuinely invested in bringing my vision to life.</p>
+            <p>After years of investing in marketing, I've learned that finding someone who listens, understands your goals, and values consistency is incredibly important.</p>
+            <p>If you're looking for someone who will help you build a brand rather than simply market a business, I highly recommend Guillermo.</p>
+          </div>
+          <div class="reco-rel">Client &middot; Oct 2026</div>
+          <div class="reco-person">
+            <div class="reco-avatar">M</div>
+            <div>
+              <div class="reco-name">Michelle Zinney</div>
+              <div class="reco-role">Founder, Zinovations Aesthetics &amp; Longevity Medicine</div>
+            </div>
+          </div>
+        </div>
 
         <div class="reco-card">
           <p class="reco-quote">Excellent professional. Very competent in the projects he was assigned to!</p>
