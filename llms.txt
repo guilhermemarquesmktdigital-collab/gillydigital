@@ -12,20 +12,20 @@
 - **Languages:** English, Portuguese
 
 ## Services Offered
-1. **Social Media Management** — Strategic content planning, community management, and engagement optimization across all platforms. [social-media-management-atlanta.html](https://gillydigital.com/social-media-management-atlanta.html)
-2. **Graphic Design** — Visual identity, social media assets, ad creatives, and brand collateral that stand out. [graphic-design-atlanta.html](https://gillydigital.com/graphic-design-atlanta.html)
-3. **Web Design** — Modern, responsive, SEO-friendly websites with clean UI/UX that convert visitors into customers. [web-design-atlanta.html](https://gillydigital.com/web-design-atlanta.html)
-4. **Paid Ads** — Data-driven campaigns on Meta, Google, and TikTok that maximize ROI and drive real results. [paid-ads-atlanta.html](https://gillydigital.com/paid-ads-atlanta.html)
-5. **Drone Video** — Cinematic aerial footage for real estate, events, and brand storytelling — shot with a compact sub-249g drone. [drone-video-atlanta.html](https://gillydigital.com/drone-video-atlanta.html)
+1. **Social Media Management** — Strategic content planning, community management, and engagement optimization across all platforms. [social-media-management-atlanta](https://gillydigital.com/social-media-management-atlanta)
+2. **Graphic Design** — Visual identity, social media assets, ad creatives, and brand collateral that stand out. [graphic-design-atlanta](https://gillydigital.com/graphic-design-atlanta)
+3. **Web Design** — Modern, responsive, SEO-friendly websites with clean UI/UX that convert visitors into customers. [web-design-atlanta](https://gillydigital.com/web-design-atlanta)
+4. **Paid Ads** — Data-driven campaigns on Meta, Google, and TikTok that maximize ROI and drive real results. [paid-ads-atlanta](https://gillydigital.com/paid-ads-atlanta)
+5. **Drone Video** — Cinematic aerial footage for real estate, events, and brand storytelling — shot with a compact sub-249g drone. [drone-video-atlanta](https://gillydigital.com/drone-video-atlanta)
 
 ## Key Pages
 - **Home/Portfolio:** https://gillydigital.com/ — Main landing page with services, clients, and contact
-- **Português (pt-BR):** https://gillydigital.com/pt.html
-- **Social Media Management Atlanta:** https://gillydigital.com/social-media-management-atlanta.html
-- **Graphic Design Atlanta:** https://gillydigital.com/graphic-design-atlanta.html
-- **Web Design Atlanta:** https://gillydigital.com/web-design-atlanta.html
-- **Paid Advertising Atlanta:** https://gillydigital.com/paid-ads-atlanta.html
-- **Drone Video Atlanta:** https://gillydigital.com/drone-video-atlanta.html
+- **Português (pt-BR):** https://gillydigital.com/pt
+- **Social Media Management Atlanta:** https://gillydigital.com/social-media-management-atlanta
+- **Graphic Design Atlanta:** https://gillydigital.com/graphic-design-atlanta
+- **Web Design Atlanta:** https://gillydigital.com/web-design-atlanta
+- **Paid Advertising Atlanta:** https://gillydigital.com/paid-ads-atlanta
+- **Drone Video Atlanta:** https://gillydigital.com/drone-video-atlanta
 
 ## Social Profiles
 - Instagram: https://instagram.com/gillydigital
